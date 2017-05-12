@@ -1,0 +1,25 @@
+# Directories to ignore
+
+
+# File types to ignore
+# Compiled code
+*.pyc
+
+# data files
+
+# log files
+*.log
+
+# Graphics files
+*.eps
+*.png
+*.jpg
+*.tif
+
+# Any backup files from matlab
+*\~
+
+# MacOS & Windows indexing
+.DS_Store
+Thumbs.db
+\._*
