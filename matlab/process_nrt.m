@@ -117,8 +117,9 @@ end_year=start_year+1;
 
 %% Read, QC and plot data
 % % Add paths for necessary functions
-addpath('/noc/packages/satprogs/satmat/mysql');
-addpath '/noc/users/animate/matlab/animate';
+%addpath('/noc/packages/satprogs/satmat/mysql');
+addpath('/noc/users/animate/animate/matlab/mysql');
+addpath '/noc/users/animate/animate/matlab/animate';
 % addpath '/noc/users/animate/matlab/seawater';
 
 % Plot position info first - from gps and met sources

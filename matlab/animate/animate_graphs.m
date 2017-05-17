@@ -71,7 +71,7 @@ set(gcf,'paperunits','inches','paperposition',[0 0 6.5 4]);
 % hax=axes('Position',[0 0 1 1],'visible','off');
 % axes('Position',[0.08 0.1 0.9 0.85]);
 % Reset axes position
-set(gca,'Position',[0.08 0.1 0.9 0.85]);
+set(gca,'Position',[0.08 0.1 0.9 0.8]);
 % plot(x,y,'-');
 
 % Reset font size
@@ -93,7 +93,7 @@ end
 set(gca,'XTickLabel',XTICKLAB);
 
 % Add title, x and y axis labels
-title(varTitle,'fontsize',10);
+title(varTitle,'fontsize',9);
 xlabel(x_lab,'fontsize',8);
 ylabel(y_lab,'fontsize',10);
 % set(gcf,'CurrentAxes',hax);
