@@ -52,8 +52,10 @@ fetYlim=[7.5 8.5];			% used to set Y limits on fet graphs
 
 % Parameters for OC processing
 oc_var = 2;
-% Aa_ox_slope=0.9662; %201407 from Jon email 14:29
-% Aa_ox_offset=-24.992;
+
+% Parameters for Aanderaa 4430H Seaguard Oxygen processing
+Aa_ox_slope=0.9662; %201407 from Jon email 14:29
+Aa_ox_offset=-24.992;
 % 
 % chlYlim=[0.0, 2.0];
 % 
