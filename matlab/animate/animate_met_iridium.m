@@ -1,20 +1,25 @@
 % Script to plot Met data from MySQL table
 
 %% Setup variables
-metdat = struct('numdate',[],...
-  'air_press',[],'sea_temp',[],'wave_TP',[],...
-  'Hsig',[],'Hmax',[],'wave_dir',[],'wave_spread',[],...
-  'humidity',[],'humidity2',[],...
-  'air_temp',[],'dew_temp',[],'air_temp2',[],'dew_temp2',[],...
-  'wind_speed',[],'wind_gust',[],'wind_dir',[]);
-flds = fieldnames(metdat);
+% metdat = struct('numdate',[],...
+%   'air_press',[],'sea_temp',[],'wave_TP',[],...
+%   'Hsig',[],'Hmax',[],'wave_dir',[],'wave_spread',[],...
+%   'humidity',[],'humidity2',[],...
+%   'air_temp',[],'dew_temp',[],'air_temp2',[],'dew_temp2',[],...
+%   'wind_speed',[],'wind_gust',[],'wind_dir',[]);
+% flds = fieldnames(metdat);
+flds = {'Date_Time', 'air_press', 'sea_temp', 'wave_TP',...
+  'Hsig', 'Hmax', 'wave_dir', 'wave_spread', ...
+  'humidity', 'humidity_2', ...
+  'air_temp', 'dew_temp', 'air_temp_2', 'dew_temp_2', ...
+  'wind_speed', 'wind_gust', 'wind_dir'};
 
 % Define plots & legends
 plt = {'air_press','sea_temp','waveTP','waveH','waveDir','humidity',...
   'temp','temp2','wind','wind2'};
 pltLegend = {{''},{''},{''},...
   {'Significant Wave Height','Maximum Wave Height'},...
-  {'Direction','Spread'},{'Sensor 1','Sensor 2'},
+  {'Direction','Spread'},{'Sensor 1','Sensor 2'},...
   {'Air','Dew Point'},{'Air','Dew Point'},...
   {'Speed knots','Gust  knots','Direction'}...
   };
@@ -28,18 +33,18 @@ pltYlab = {'hectopascal','\circC','',...
 % Read data from MySQL database table
 db_tab=[db_table '_met'];
 s_str = ' order by Date_Time DESC';
-[DATA, rows] = mysql_animate(db_tab,start_date,end_date,s_str);
+[metdat, rows] = mysql_animate(db_tab,flds,start_date,end_date,s_str);
 
 if (rows > 0)
-  % Convert Date and Time character string to datenum
-  metdat.numdate = datenum(cell2mat({DATA(:).Date_Time}'),'yyyy-mm-dd HH:MM:SS')';
-  % transfer remaining data into data structure
-  for j=2:length(flds)
-    fld = flds{j};
-    % Copy measurements into structure
-    metdat(m).(fld) = cell2mat({DATA(:).(fld)});
-  end
-
+%   % Convert Date and Time character string to datenum
+%   metdat.numdate = datenum(cell2mat({DATA(:).Date_Time}'),'yyyy-mm-dd HH:MM:SS')';
+%   % transfer remaining data into data structure
+%   for j=2:length(flds)
+%     fld = flds{j};
+%     % Copy measurements into structure
+%     metdat(m).(fld) = cell2mat({DATA(:).(fld)});
+%   end
+% 
   % Apply out of bounds checks
   metdat.air_temp(metdat.air_temp<0 | metdat.air_temp>50) = NaN;
   metdat.sea_temp(metdat.sea_temp<0 | metdat.sea_temp>50) = NaN;
@@ -67,25 +72,23 @@ if (rows > 0)
       if ~isempty(tmp{i}), metdat.wind_gust(i) = tmp{i}; end
     end
   end
-
+  % end of data input
+  %% Create monthly averages
+  % monthly averages
+  numdate_vec = datevec(metdat.Date_Time);
+  for fld = {'temp','S','ox_mol','ox_mol_comp'}
+    mnVname=char(fld);
+    mnVar = smetdat.(char(fld));
+    monthly_average(deploy,start_year,end_year,numdate_vec,mnVar,mnVname);
+  end
+  
+  %monthly averages
+  zqzq=find((wind_dir > 0) & (wind_speed > 0));
+  numdate_vec=datevec(metdat.Date_Time(zqzq));
+  mnVar=wind_speed(zqzq);
+  mnVname='wind_speed';
+  monthly_average;
 end;
-% end of data input
-%% Create monthly averages
-% monthly averages
-numdate_vec = datevec(metdat(m).numdate);
-for fld = {'temp','S','ox_mol','ox_mol_comp'}
-  mnVar = smetdat(m).(char(fld));
-  mnVname=['met_' char(fld) num2str(sbo(m,2))];
-  monthly_average(deploy,start_year,end_year,numdate_vec,mnVar,mnVname);
-end
-
-
-%monthly averages
-zqzq=find((wind_dir > 0) & (wind_speed > 0));
-numdate_vec=datevec(metnumdate(zqzq));
-mnVar=wind_speed(zqzq);
-mnVname=['wind_speed'];
-monthly_average;
 
 %% Plot data
 
@@ -102,7 +105,7 @@ for m=1:length(plt)
     end
     % Set title
     varTitle = {pltTitle{m},...
-      ['Latest data: ' datestr(metdat.numdate(1))]};
+      ['Latest data: ' datestr(metdat.Date_Time(1))]};
     % Set legend string
     legend_M = pltLeg{m};
     % Set y axis label
@@ -123,7 +126,7 @@ for m=1:length(plt)
     for i = p;
       np = np + 1;
       fld = flds{i};
-      x{np} = metdat.numdate;
+      x{np} = metdat.Date_Time;
       y{np} = metdat.(fld);
     end
     % All on one graph
@@ -147,7 +150,7 @@ if rows > 0
   varYlim=0;
   % Set title
   varTitle = {'Temperatures--UK Met.Office',...
-    ['Latest data: ' datestr(metdat.numdate(1))]};
+    ['Latest data: ' datestr(metdat.Date_Time(1))]};
   % Set legend string
   legend_M = {'Sea surface','Air','Dew Point'};
   % Set y axis label
@@ -161,7 +164,7 @@ if rows > 0
   for i = [3 11 12];
     np = np + 1;
     fld = flds{i};
-    x{np} = metdat.numdate(qc);
+    x{np} = metdat.Date_Time(qc);
     y{np} = metdat.(fld)(qc);
   end
   % All 3 on one graph
@@ -185,13 +188,13 @@ for i = [7 16]
   end
   if rows>0
   varTitle = {[pltT ' Direction : Arrows show direction and relative speed'],...
-    ['Latest data: ' datestr(metdat.numdate(1))]};
+    ['Latest data: ' datestr(metdat.Date_Time(1))]};
   legend_M = {'00:00','06:00','12:00','18:00'};
   fld = flds{i};
   w_dir = metdat.(fld)+180;
   u = sin(w_dir*0.0175).* metdat.(fld2);    % pi/180
   v = cos(w_dir*0.0175).* metdat.(fld2);
-  metnumtime = metdat.numdate-floor(metdat.numdate);
+  metnumtime = metdat.Date_Time-floor(metdat.Date_Time);
   x = cell(1,4);
   y = x; up = x; vp = x;
   for  k = 1:4
@@ -201,8 +204,8 @@ for i = [7 16]
       td = 0.25*(k-1);
       kk = find(metnumtime>td-drift & metnumtime<td+drift);
     end
-    x{k} = metdat.numdate(kk);
-    y{k} = ones(size(metdat.numdate(kk)));
+    x{k} = metdat.Date_Time(kk);
+    y{k} = ones(size(metdat.Date_Time(kk)));
     up{k} = u(kk);
     vp{k} = v{kk};
   end

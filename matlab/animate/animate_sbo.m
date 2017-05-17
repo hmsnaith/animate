@@ -8,48 +8,48 @@ b2=-0.00690358;
 b3=-0.00429155;
 c0=-0.000000311680;
 
-% var='sbo';
-sbodat(1:sbo_nv) = struct('n',[],'numdate',[],'temp',[],'cond',[],'press',[],...
+sbodat(1:sbo_nv) = struct('n',[],'Date_Time',[],'temp',[],'cond',[],'press',[],...
                      'S',[],'St',[],'ox',[],'ox_mol',[],'ox_mol_comp',[]);
-param = struct('temp','Temperature deg C','press','Pressure dB',...
+flds = {'Date_Time', 'sbo_temp', 'sbo_cond', 'sbo_press','sbo_ox',...
+        'sbo_temp_qc', 'sbo_cond_qc','sbo_press_qc', 'sbo_ox_qc'};
+param = struct('temp','Temperature \circC','press','Pressure dB',...
                'S','Salinity','St','Sigma-t',...
                'ox','Oxygen on Seabird microcat','ox_mol','Oxygen on Seabird microcat',...
                'ox_mol_comp','Salinity compensated Oxygen on Seabird microcat');
-units = struct('temp','Temperature deg C','press','Pressure dB',...
+units = struct('temp','Temperature \circC','press','Pressure dB',...
                'S','Salinity','St','Sigma-t',...
                'ox','Oxygen (ml/l)','ox_mol','Oxygen (\mumol/l)',...
-               'ox_mol_comp','Sal. comp. O\2 (\mumol)' );
+               'ox_mol_comp','Sal. comp. O_2 (\mumol)' );
 have_data = 0;
-%% Read in and Calculate Values
+%% Read in, apply QC and Calculate Derived Values
 % For each SBO dataset
 for m=1:sbo_nv;
   % Read data from MySQL database table
   db_tab=[db_table '_sbo_' num2str(m)];
   s_str = ' order by Date_Time ASC';
-  [DATA, sbodat(m).n] = mysql_animate(db_tab,start_date,end_date,s_str);
+  [DATA, sbodat(m).n] = mysql_animate(db_tab,flds,start_date,end_date,s_str);
   
   if (sbodat(m).n > 0)
     have_data = have_data + 1;
     % transfer data into data structure
-%     have_data=have_data +m;
-    % Convert Date and Time character string to datenum
-    sbodat(m).numdate = datenum(cell2mat({DATA(:).Date_Time}'),'yyyy-mm-dd HH:MM:SS')';
+    sbodat(m).Date_Time = DATA.Date_Time;
+    last_date = max(last_date,sbodat(m).Date_Time(end));
     for fld={'temp','cond','press','ox'}
       % Copy basic measurements into data structure
       fldnm = ['sbo_' char(fld)];
-      sbodat(m).(char(fld)) = cell2mat({DATA(:).(fldnm)});
+      sbodat(m).(char(fld)) = DATA.(fldnm);
       % If qc flags are set - apply to relevant data
-      tmp = {DATA(:).([fldnm '_qc'])};
+      tmp = DATA.([fldnm '_qc']);
       % If all values are null, we ignore them, otherwise
-      if ~isempty([tmp{:}])
+      if ~isempty(tmp)
         % Convert QC cell array to matrix
-        qc = cell2mat(tmp);
+        qc = tmp;
         if length(qc)<sbodat(m).n % if the QC array is 'short', not all values set
           % Assume all values bad
           qc = ones(1,sbodat(m).n);
           for i=1:sbodat(m).n
             % Loop over all QC values, NULL or 0 are considered good
-            if isempty(tmp{i}) || tmp{i}==0, qc(i) = 0; end
+            if isempty(tmp(i)) || tmp(i)==0, qc(i) = 0; end
           end
         end
         % Any flagged bad values - set to NaN
@@ -94,7 +94,8 @@ for m=1:sbo_nv;
   % end of data input
   %% Create monthly averages
   % monthly averages
-  numdate_vec = datevec(sbodat(m).numdate);
+%   numdate_vec = datevec(sbodat(m).numdate);
+  numdate_vec = datevec(sbodat(m).Date_Time);
   for fld = {'temp','S','ox_mol','ox_mol_comp'}
     mnVar = sbodat(m).(char(fld));
     mnVname=['sbo_' char(fld) num2str(sbo(m,2))];
@@ -124,11 +125,13 @@ for i = 1:length(flds);
   if have_data > 0
     x = cell(1,sbo_nv);
     y = x;
-    varTitle = ['PAP mooring ' dep_name ' Deployment:  ' param.(fld)];
+    ldat = nanmax(sbodat(:).Date_Time);
+    varTitle = {['PAP ' dep_name ' Deployment:  ' param.(fld)]; ...
+               ['Latest data: ' datestr(nanmax(cell2mat({sbodat(:).Date_Time})))]};
     y_lab = units.(fld);
     
     for m=1:sbo_nv
-      x{m} = sbodat(m).numdate;
+      x{m} = sbodat(m).Date_Time;
       y{m} = sbodat(m).(fld);
     end
     animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
