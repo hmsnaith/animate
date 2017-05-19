@@ -17,11 +17,21 @@ figure('visible','off');
 % figure
 % Set axes and size for small figure
 % hax=axes('Position',[0 0 1 1],'visible','off');
-hax=axes('Position',[0 0 1 1]);
+axes('Position',[0 0 1 1]);
 % Get axes colour order for plotting
 c = get(gca,'ColorOrder');
 % Set up an empty legend text array
-lgnd = char(zeros(size(legend_M)));
+np = 0;
+for i=1:length(x);
+  if ~isempty(x{i}), np = np+1; end
+end
+if iscell(legend_M)
+  lgnd = cell(1,np);
+elseif ischar(legend_M)
+  lgnd = char(zeros(np,length(legend_M)));
+else
+  lgnd = [];
+end
 
 %% Plot data
 p = 0;
@@ -33,9 +43,15 @@ for i=1:length(x);
     % increment plot count
     p = p+1;
     % Save the legend text for this line
-    lgnd(p,:) = legend_M(i,:);
+    if ~isempty(legend_M)
+      if iscell(legend_M)
+        lgnd{p} = legend_M{i};
+      else
+        lgnd(p,:)=legend_M(i,:);
+      end
+    end
     % plot variable
-    plot(x{i},y{i},'-','Color',c(i,:));
+    plot(x{i},y{i},'-','Color',c(p,:));
   end
 end
 % If we are limiting Y axis, do it here
@@ -50,13 +66,6 @@ datetick('x','dd/mm');
 set(gcf,'paperunits','inches','paperposition',[0 0 1.9 1]);
 % Define axes position
 set(gca,'Position',[0.08 0.15 0.9 0.9]);
-% XTICK=get(gca,'XTick');
-% [~, xcols]=size(XTICK);
-% for j=1:xcols;
-%   XTL=[datestr(XTICK(1,j),'dd') '-' datestr(XTICK(1,j),'mmm')];
-%   for k=1:6, XTICKLAB(j,k)=XTL(1,k); end
-% end;
-%set(gca,'XTickLabel',XTICKLAB);
 % Set font size
 set(gca,'fontsize',3);
 % set(gcf,'CurrentAxes',hax);
@@ -64,12 +73,8 @@ set(gca,'fontsize',3);
 saveas(gcf,[webdir 'small_' varStr '.png']);
 
 %% Generate large plot version
-% clf;
-% figure('visible','off');
 % Reset paper size
 set(gcf,'paperunits','inches','paperposition',[0 0 6.5 4]);
-% hax=axes('Position',[0 0 1 1],'visible','off');
-% axes('Position',[0.08 0.1 0.9 0.85]);
 % Reset axes position
 set(gca,'Position',[0.08 0.1 0.9 0.8]);
 % plot(x,y,'-');
@@ -78,14 +83,14 @@ set(gca,'Position',[0.08 0.1 0.9 0.8]);
 set(gca,'fontsize',7);% Reset paper size and font size for large plot version
 
 % Add legend with reduced font
-hlegend=legend(lgnd(1:p,:),'location','NorthEast');
-set(hlegend,'FontSize',6);
-
+if ~isempty(lgnd)
+  hlegend=legend(lgnd,'location','best');
+  set(hlegend,'FontSize',6);
+end
 % Add X tick labelling
-% set(gca,'XMinorTick','Off')
-% datetick('x','dd/mm');
 XTICK=get(gca,'XTick');
 [~, xcols]=size(XTICK);
+XTICKLAB = zeros(xcols,6);
 for j=1:xcols;
   XTL=[datestr(XTICK(1,j),'dd') '-' datestr(XTICK(1,j),'mmm')];
   for k=1:6, XTICKLAB(j,k)=XTL(1,k); end

@@ -175,7 +175,7 @@ else
 end
 
 % Quiver plots - plot records at 00:00, 06:00, 12:00 & 18:00, +/1 5 mins
-drift = 0.0035; %5 minutes as proportion of hour 300/84600
+drift = 0.0035; % 5 minutes as proportion of day 5/1440
 for i = [7 16]
   if i==7
     varStr = 'met_wave_arrow';
@@ -187,30 +187,30 @@ for i = [7 16]
     fld2 = flds{i-1};
   end
   if rows>0
-  varTitle = {[pltT ' Direction : Arrows show direction and relative speed'],...
-    ['Latest data: ' datestr(metdat.Date_Time(1))]};
-  legend_M = {'00:00','06:00','12:00','18:00'};
-  fld = flds{i};
-  w_dir = metdat.(fld)+180;
-  u = sin(w_dir*0.0175).* metdat.(fld2);    % pi/180
-  v = cos(w_dir*0.0175).* metdat.(fld2);
-  metnumtime = metdat.Date_Time-floor(metdat.Date_Time);
-  x = cell(1,4);
-  y = x; up = x; vp = x;
-  for  k = 1:4
-    if k==1
-      kk = find(metnumtime>1-drift | metnumtime<drift);
-    else
-      td = 0.25*(k-1);
-      kk = find(metnumtime>td-drift & metnumtime<td+drift);
+    varTitle = {[pltT ' Direction : Arrows show direction and relative speed'],...
+      ['Latest data: ' datestr(metdat.Date_Time(1))]};
+    legend_M = {'00:00','06:00','12:00','18:00'};
+    fld = flds{i};
+    w_dir = metdat.(fld)+180;
+    u = sin(w_dir*0.0175).* metdat.(fld2);    % pi/180
+    v = cos(w_dir*0.0175).* metdat.(fld2);
+    metnumtime = metdat.Date_Time-floor(metdat.Date_Time);
+    x = cell(1,4);
+    y = x; up = x; vp = x;
+    for  k = 1:4
+      if k==1
+        kk = find(metnumtime>1-drift | metnumtime<drift);
+      else
+        td = 0.25*(k-1);
+        kk = find(metnumtime>td-drift & metnumtime<td+drift);
+      end
+      x{k} = metdat.Date_Time(kk);
+      y{k} = ones(size(metdat.Date_Time(kk)));
+      up{k} = u(kk);
+      vp{k} = v(kk);
     end
-    x{k} = metdat.Date_Time(kk);
-    y{k} = ones(size(metdat.Date_Time(kk)));
-    up{k} = u(kk);
-    vp{k} = v{kk};
-  end
-  animate_quiver(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
-
+    animate_quiver(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
+    
   else
     empty_plot(varStr)
   end

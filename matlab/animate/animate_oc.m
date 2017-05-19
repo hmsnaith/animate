@@ -1,7 +1,7 @@
 % Script to plot OCR data from MySQL tables
 
 %% Setup variables
-ocdat(1:oc_var) = struct('n',[],'numdate',[],...
+ocdat(1:oc_var) = struct('n',[],'Date_Time',[],...
                          'channel_1',[],'channel_2',[],'channel_3',[],...
                          'channel_4',[],'channel_5',[],'channel_6',[],...
                          'channel_7',[],'supply_v',[],'int_temp',[]);
@@ -20,27 +20,25 @@ flds = fieldnames(ocdat);
 units = {'\muW/cm^2/nm','\muW/cm^2/sr','\muW/cm^2/nm'};
 have_data = 0;
 
-%% Read in and Calculate Values
+%% Read in and QC Values
 for m=1:oc_nv
   % Read data from MySQL database table
   db_tab=[db_table '_oc' num2str(m)];
   s_str = ' order by Date_Time DESC';
-  [DATA, ocdat(m).n] = mysql_animate(db_tab,pro_o_start_date,end_date,s_str);
+  [DATA, ocdat(m).n] = mysql_animate(db_tab,flds(2:end),pro_o_start_date,end_date,s_str);
   
   if (ocdat(m).n > 0)
-    % Convert Date and Time character string to datenum
-    ocdat(m).numdate = datenum(cell2mat({DATA(:).Date_Time}'),'yyyy-mm-dd HH:MM:SS')';
-    % transfer remaining data into data structure
-    for j=3:length(flds)
+    % transfer data into data structure
+    for j=2:length(flds)
       fld = flds{j};
       % Copy measurements into structure
-      ocdat(m).(fld) = cell2mat({DATA(:).(fld)});
+      ocdat(m).(fld) = DATA.(fld);
     end
     
     % Apply qc
-    qc = find(ocdat(m).supply_v>=10 || ocdata(m).int_temp>=30);
+    qc = find(ocdat(m).supply_v>=10 | ocdat(m).int_temp>=30);
     for j=3:10
-      fld = flds{i};
+      fld = flds{j};
       ocdat(m).(fld)(qc) = NaN;
     end
   end
@@ -60,22 +58,22 @@ for m=1:oc_nv
   if ocdat(m).n > 0
     x = cell(1,7);
     y = x;
-% Set legend string
-  legend_M = oc_channs(m,:);
-  % Set title
-		varTitle = ([ocTitle{m}, ...
-              ' Latest data: ' datestr(ocdat(m).numdate(end))]);
-% Set Y axis lable
-y_lab = units{m};
+    % Set legend string
+    legend_M = oc_channs(m,:);
+    % Set title
+    varTitle = ([ocTitle{m}, ...
+      ' Latest data: ' datestr(ocdat(m).Date_Time(end))]);
+    % Set Y axis label
+    y_lab = units{m};
     np = 0;
     for i = 3:9;
       np = np + 1;
       fld = flds{i};
-      x{np} = ocdat(m).numdate;
+      x{np} = ocdat(m).Date_Time;
       y{np} = ocdat(m).(fld);
     end
     animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
-  % If we don't have data, create an 'empty plot' file
+    % If we don't have data, create an 'empty plot' file
   else
     empty_plot(varStr)
   end

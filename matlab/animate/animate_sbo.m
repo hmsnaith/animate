@@ -1,13 +1,6 @@
 % Script to plot sbo data from MySQL table
 
 %% Setup variables
-% Set constants for scaled temperature calculation
-b0=-0.00624097;
-b1=-0.00693498;
-b2=-0.00690358;
-b3=-0.00429155;
-c0=-0.000000311680;
-
 sbodat(1:sbo_nv) = struct('n',[],'Date_Time',[],'temp',[],'cond',[],'press',[],...
                      'S',[],'St',[],'ox',[],'ox_mol',[],'ox_mol_comp',[]);
 flds = {'Date_Time', 'sbo_temp', 'sbo_cond', 'sbo_press','sbo_ox',...
@@ -125,9 +118,8 @@ for i = 1:length(flds);
   if have_data > 0
     x = cell(1,sbo_nv);
     y = x;
-    ldat = nanmax(sbodat(:).Date_Time);
     varTitle = {['PAP ' dep_name ' Deployment:  ' param.(fld)]; ...
-               ['Latest data: ' datestr(nanmax(cell2mat({sbodat(:).Date_Time})))]};
+               ['Latest data: ' datestr(last_date)]};
     y_lab = units.(fld);
     
     for m=1:sbo_nv

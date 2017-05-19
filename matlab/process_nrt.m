@@ -42,41 +42,42 @@ sbo_nv=3;
 sbo=[1,9030; 30,10535; 30,13397];     % amended to be serial numbers for current deployment
 sbo_press_corr=[0, 0, 0];
 sboYlim=[5 7]; % Used to set Y Limits on sbo graphs
+% Constants for scaled temperature calculation
+b0=-0.00624097;
+b1=-0.00693498;
+b2=-0.00690358;
+b3=-0.00429155;
+c0=-0.000000311680;
   
-% sbe=[30, 6915]; % amended to be serial numbers for current deployment
-
 % Parameters needed for FET processing
 fet_nv=2;
 fet=[1, 257;30, 63];			% amended to be serial numbers for current deployment
 fetYlim=[7.5 8.5];			% used to set Y limits on fet graphs
 
-% Parameters for OC processing
-oc_var = 2;
+% Parameters for Aanderaa 4430H (S/N 2001) Seaguard Oxygen processing
+Aa_ox_slope = 1.0025; % from cruise report
+Aa_ox_offset = 13.313;
+% Parameters for Turner cyclops (S/N 2103960) Seaguard Chlorophyll processing
+% from regression against bottle data in calibration dip
+cyclops_slope = 0.0951; %  from cruise report
+cyclops_offset = 0.0937;
+chlYlim = [0.0, 2.0]; % Used to set Y limits of chlorophyll graphs
 
-% Parameters for Aanderaa 4430H Seaguard Oxygen processing
-Aa_ox_slope=0.9662; %201407 from Jon email 14:29
-Aa_ox_offset=-24.992;
-% 
-% chlYlim=[0.0, 2.0];
-% 
-% % from regression  against CTD in calibration dip
-% %cyclops_slope=0.1795; % 201407
-% %cyclops_intercept=0.0663;
-% cyclops_slope=0.1737; % 201507
-% cyclops_intercept=0.0115;
-% 
-% %Wetlabs
-% cwo=48;
-% Fl_scale=0.0071;  % sn 3050 2015 but already applied to data in db table
-% cwo=0;
-% Fl_scale=1;  % sn 3050 2015
-% 
-% cwo=0;
-% Fl_scale=1;
-% 
-% % from regression  against CTD in calibration dip
-% chl_slope=0.3425;
-% chl_intercept=0.0911;  %wetlabs 20150815
+% Parameters for OC processing
+oc_nv = 2;
+
+% Parameters for Wetlabs processing
+cwo=48;
+Fl_scale=0.0071;  % sn 3050 2015 but already applied to data in db table
+cwo=0;
+Fl_scale=1;  % sn 3050 2015
+
+cwo=0;
+Fl_scale=1;
+
+% from regression against bottle chl in calibration dip - 2017 data from Corinne
+chl_slope = 0.2225;
+chl_intercept = 0.0934;
 % 
 % Fl_ref_constant=690;
 % 
@@ -149,14 +150,14 @@ animate_fetcorr;
 animate_sea;
  
 % ProcOceanus CO2
-animate_gas; 
+animate_gas;
 animate_co2;
 
 % Pro-Oceanus Gas Tension sensor
-animate_gtd;
+%animate_gtd; to do
 
 % Satlantic SUNA V2
-animate_sun;
+% animate_sun; to do
 
 % WETLabs Cycle Phosphate sensor
 % animate_po4; % No data post deployment 2017
@@ -168,7 +169,7 @@ animate_sun;
 %animate_NO3; % _nax database tables - functionality now included in nax???? reverted 30sep2010 until rewrite read
 
 % WETLabs FLNTUSB Fluorometer
-animate_wetlabs;
+% animate_wetlabs; to do
 
 % Todaynum=datenum(now);
 % Depths=    [30 30 30];

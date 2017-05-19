@@ -14,9 +14,9 @@ pltTitle = {'Pitch','Roll','Magnetic Heading',...
   'Accelerometer X-axis','Accelerometer Y-axis','Accelerometer Z-axis'};
 %% Read in Values
 % Read data from MySQL database table
-db_tab=[db_table '_att' num2str(m)];
+db_tab=[db_table '_att'];
 s_str = ' order by Date_Time DESC';
-[DATA, rows] = mysql_animate(db_tab,pro_o_start_date,end_date,s_str);
+[DATA, rows] = mysql_animate(db_tab,flds,pro_o_start_date,end_date,s_str);
 
 if (rows > 0)
   % Convert Date and Time character string to datenum
@@ -66,8 +66,8 @@ for m=1:6
     animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
     % Max, Min and average on 3 subplots
     animate_graphs_n(varTitle,[varStr '_3'],legend_M,varYlim,x,y);
-    % If we don't have data, create an 'empty plot' file
   else
+    % If we don't have data, create an 'empty plot' file
     empty_plot(varStr)
     empty_plot([varStr '_3'])
   end

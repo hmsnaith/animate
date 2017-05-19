@@ -4,7 +4,8 @@ function animate_graphs_n(varTitle,varStr,y_lab,varYlim,x,y)
 %   varTitle: Plot title
 %   varStr: string to use to name output plots
 %   ylab: strings to use for y axis labels (one line for each input array)
-%   varYlim: if not empty, used to limit y axis
+%   varYlim: if not empty, used to limit y axis - either 1 for all or
+%   1/plot
 %   x, y: cell arrays of x and y data to plot, one array / plot
 %
 % the x axis label and directory to output graphs are set in global
@@ -20,11 +21,10 @@ hax=axes('Position',[0 0 1 1]);
 % Get axes colour order for plotting
 c = get(gca,'ColorOrder');
 % Set up an empty legend text array
-lgnd = char(zeros(size(legend_M)));
-
 %% Plot data
 p = 0;
 nps = length(x);
+h = zeros(1,nps);
 % For each input cell array
 for i=1:nps;
   % As long as we have data for this 
@@ -32,10 +32,16 @@ for i=1:nps;
     % increment plot count
     p = p+1;
     % plot variable
-    subplot(nps,1,i);
+    h(i) = subplot(nps,1,i);
     plot(x{i},y{i},'-','Color',c(i,:));
     % If we are limiting Y axis, do it here
-    if exist('varYlim','var') && ~isempty(varYlim), ylim(varYlim); end
+    if exist('varYlim','var') && ~isempty(varYlim)
+      if length(varYlim)>1
+        ylim(varYlim(i));
+      else
+        ylim(varYlim);
+      end
+    end
     % Add y axis label
     ylabel(y_lab{i},'fontsize',10);
     % Set tickmarks and x axis
@@ -56,10 +62,10 @@ saveas(gcf,[webdir 'small_' varStr '.png']);
 set(gcf,'paperunits','inches','paperposition',[0 0 7 4]);
 
 % Reset font size
-set(gca,'fontsize',8);
+for i=1:nps, set(h(i),'fontsize',8); end
 
-% Add title, x and y axis labels
-title(varTitle,'fontsize',10);
+% Add title & x axis labels
+title(h(1), varTitle,'fontsize',10);
 xlabel(x_lab,'fontsize',8);
 
 % Save to file
