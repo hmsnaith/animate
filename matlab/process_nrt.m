@@ -67,19 +67,16 @@ chlYlim = [0.0, 2.0]; % Used to set Y limits of chlorophyll graphs
 oc_nv = 2;
 
 % Parameters for Wetlabs processing
-cwo=48;
-Fl_scale=0.0071;  % sn 3050 2015 but already applied to data in db table
+Fl_ref_constant=690;
+% cwo=48;
+% Fl_scale=0.0071;  % sn 3050 2015 but already applied to data in db table
 cwo=0;
 Fl_scale=1;  % sn 3050 2015
-
-cwo=0;
-Fl_scale=1;
 
 % from regression against bottle chl in calibration dip - 2017 data from Corinne
 chl_slope = 0.2225;
 chl_intercept = 0.0934;
-% 
-% Fl_ref_constant=690;
+
 % 
 % wetlabs FLNTUSB-270 calibration factors
 %cwo=55;
@@ -154,10 +151,10 @@ animate_gas;
 animate_co2;
 
 % Pro-Oceanus Gas Tension sensor
-%animate_gtd; to do
+animate_gtd;
 
 % Satlantic SUNA V2
-% animate_sun; to do
+animate_sun;
 
 % WETLabs Cycle Phosphate sensor
 % animate_po4; % No data post deployment 2017
@@ -169,7 +166,7 @@ animate_co2;
 %animate_NO3; % _nax database tables - functionality now included in nax???? reverted 30sep2010 until rewrite read
 
 % WETLabs FLNTUSB Fluorometer
-% animate_wetlabs; to do
+animate_wetlabs;
 
 % Todaynum=datenum(now);
 % Depths=    [30 30 30];
