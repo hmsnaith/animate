@@ -14,6 +14,7 @@ units = struct('temp','Temperature \circC','press','Pressure dB',...
                'ox','Oxygen (ml/l)','ox_mol','Oxygen (\mumol/l)',...
                'ox_mol_comp','Sal. comp. O_2 (\mumol)' );
 have_data = 0;
+last_date = datenum('01-01-1900');
 %% Read in, apply QC and Calculate Derived Values
 % For each SBO dataset
 for m=1:sbo_nv;

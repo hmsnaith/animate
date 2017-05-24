@@ -1,4 +1,4 @@
-% function process_nrt()
+% function process_nrt
 % Script to process NRT data from NOC moorings
 
 %% Set Up for current deployment - consider moving to seperate config file

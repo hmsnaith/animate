@@ -36,7 +36,7 @@ end % End FET dataset loop
 % Internal PH & External PH for all sensors
 % Set legend and title strings
 legend_M = num2str(fet,'Nom %2i (fet %5i)');
-varTitle = {['PAP ' dep_name ' Deployment:  SeaFET pH sensor']; ...
+varTitle = {['PAP ' dep_name ' Deployment:  SeaFET pH sensor'], ...
             ['Latest data: ' datestr(nanmax(cell2mat({fetdat(:).Date_Time})))]};
 % Set Y limits for variables
 varYlim=fetYlim;
