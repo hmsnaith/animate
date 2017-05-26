@@ -2,7 +2,7 @@ function [DATA, rows] = mysql_animate(db_table, cols, start_date, end_date, s_st
 % Function to open animate MySQL database as animate_admin
 % and read all data for columns (col)
 % between start_date and end_date from table db_table
-verb = 1; % 1=verbose, 0=silent
+verb = 0; % 1=verbose, 0=silent
 %% Argument checks
 % If db_table for a charcter - return error
 % if start_date not set, set to 1900

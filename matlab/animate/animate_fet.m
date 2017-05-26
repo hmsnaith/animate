@@ -1,8 +1,6 @@
 % Script to plot fet data from MySQL tables
 
 %% Setup variables
-% Set constants
-
 % fetdat(1:fet_nv) = struct('n',[],'Date_Time',[],'FET_temp',[],...
 %                      'FET_INT_pH',[],'FET_EXT_pH',[],...
 %                      'FET_INT_v',[],'FET_EXT_v',[],'therm_v',[],...
@@ -14,6 +12,7 @@ fetdat(1:fet_nv) = struct('n',[],'Date_Time',[],...
 flds = fieldnames(fetdat);
 units = struct('FET_INT_pH','Internal pH','FET_EXT_pH','External pH');
 have_data = 0;
+last_date = datenum('01-01-1900');
 %% Read in Values
 % For each FET dataset
 for m=1:fet_nv;
@@ -30,6 +29,7 @@ for m=1:fet_nv;
       % Copy basic measurements into structure
       fetdat(m).(fld) = DATA.(fld);
     end
+    last_date = max(last_date,fetdat(m).Date_Time(end));
   end % end of 'if fetdat(m).n>0'
 end % End FET dataset loop
 %% Plot data
@@ -37,7 +37,7 @@ end % End FET dataset loop
 % Set legend and title strings
 legend_M = num2str(fet,'Nom %2i (fet %5i)');
 varTitle = {['PAP ' dep_name ' Deployment:  SeaFET pH sensor'], ...
-            ['Latest data: ' datestr(nanmax(cell2mat({fetdat(:).Date_Time})))]};
+            ['Latest data: ' datestr(last_date)]};
 % Set Y limits for variables
 varYlim=fetYlim;
   
@@ -73,7 +73,7 @@ for m=1:fet_nv
     x = cell(1,2);
     y = x;
 		varTitle = {['Satlantic SeaFET pH sensor-sn.' int2str(fet(m,2))]; ...
-                ['Latest data: ' datestr(fetdat(m).Date_Time(end))]};
+                ['Latest data: ' datestr(last_date)]};
     np = 0;
 %     for i = [4 5];
     for i = [3 4];

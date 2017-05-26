@@ -1,12 +1,11 @@
-% function process_nrt
 % Script to process NRT data from NOC moorings
 
 %% Set Up for current deployment - consider moving to seperate config file
 global webdir x_lab
 
 %% Deployment Info
-%webdir = '/noc/users/animate/img/pap_2017_apr/';
-webdir='/noc/itg/www/apps/pap/pap_2017_apr/';
+webdir = '/noc/users/animate/img/pap_2017_apr/';
+%webdir=['/noc/itg/www/apps/pap/' webd '/'];
 % webdir2='/data/ncs/www/eurosites/pap/pap_2017_apr/';
 
 deploy='201704';
@@ -188,9 +187,6 @@ animate_wetlabs;
 % Irradiance 
 animate_oc;
 
-
-
-
 % Engineering, Iridium and Hub Status info
 % animate_engineering; (_mon files) Not 2017
 animate_ST1; % Telemetry Motion Control
@@ -207,3 +203,4 @@ animate_btt;
 % Housing power data
 animate_pwr;
 
+disp('Completed running process_nrt');

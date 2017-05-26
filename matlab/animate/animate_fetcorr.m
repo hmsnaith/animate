@@ -1,9 +1,6 @@
 % Script to plot fet data from MySQL table
 
 %% Setup variables
-% Set constants
-
-% var='fet';
 % fetcorrdat(1:fet_nv) = struct('n',[],'Date_Time',[],'FET_temp',[],...
 %                      'FET_INT_pH',[],'FET_EXT_pH',[],...
 %                      'FET_INT_v',[],'FET_EXT_v',[],'therm_v',[],...

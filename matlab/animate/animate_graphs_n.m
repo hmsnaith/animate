@@ -36,8 +36,8 @@ for i=1:nps;
     plot(x{i},y{i},'-','Color',c(i,:));
     % If we are limiting Y axis, do it here
     if exist('varYlim','var') && ~isempty(varYlim)
-      if length(varYlim)>1
-        ylim(varYlim(i));
+      if size(varYlim,1)>1
+        ylim(varYlim(i,:));
       else
         ylim(varYlim);
       end

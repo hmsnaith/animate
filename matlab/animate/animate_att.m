@@ -1,6 +1,6 @@
 % Script to plot Hub attitude data from MySQL tables
 %% Setup variables
-attdat = struct('numdate',[],...
+attdat = struct('Date_Time',[],...
   'max_pitch',[],'min_pitch',[],'ave_pitch',[],...
   'max_roll',[],'min_roll',[],'ave_roll',[],...
   'max_mag_heading',[],'min_mag_heading',[],'ave_mag_heading',[],...
@@ -9,39 +9,28 @@ attdat = struct('numdate',[],...
   'max_g_Z',[],'min_g_Z',[],'ave_g_Z',[]);
 flds = fieldnames(attdat);
 
-plt = {'pitch','roll','mag_heading','g_X','g_Y','g_Z'};
+plts = {'pitch','roll','mag_heading','g_X','g_Y','g_Z'};
 pltTitle = {'Pitch','Roll','Magnetic Heading',...
   'Accelerometer X-axis','Accelerometer Y-axis','Accelerometer Z-axis'};
 %% Read in Values
 % Read data from MySQL database table
 db_tab=[db_table '_att'];
 s_str = ' order by Date_Time DESC';
-[DATA, rows] = mysql_animate(db_tab,flds,pro_o_start_date,end_date,s_str);
-
-if (rows > 0)
-  % Convert Date and Time character string to datenum
-  attdat.numdate = datenum(cell2mat({DATA(:).Date_Time}'),'yyyy-mm-dd HH:MM:SS')';
-  % transfer remaining data into data structure
-  for j=2:length(flds)
-    fld = flds{j};
-    % Copy measurements into structure
-    attdat.(fld) = cell2mat({DATA(:).(fld)});
-  end
-end
+[attdat, rows] = mysql_animate(db_tab,flds,start_date,end_date,s_str);
 %% Plot data
 % First, Pitch, Roll and Heading Max, Min & Average
 % Set legend string
 legend_M = {'Max','Min','Average'};
 for m=1:6
   % Set plot (variable) name
-  varStr = ['att_' plt{m}];
+  varStr = ['att_' plts{m}];
   % If we have data
   if rows>0
-    % Set Y axis label
-    y_lab = [plt{m} ' (Degrees)'];
     % Set title
     varTitle = {['Hub ' pltTitle{m}], ...
-      ['Latest data: ' datestr(attdat.numdate(end))]};
+      ['Latest data: ' datestr(attdat.Date_Time(end))]};
+    % Set Y axis label
+    y_lab = [plts{m} ' (Degrees)'];
     % Set Y Limits
     if m<=2
       varYlim = [-50 50];
@@ -50,16 +39,16 @@ for m=1:6
     elseif m==6
       varYlim = [-1 3];
     else
-      varYlim = 0;
+      varYlim = [];
     end
-    % If we have data - plot and print graphs
+    % plot and print graphs
     x = cell(1,3);
     y = x;
     np = 0;
     for i = (2:4)+((m-1)*3);
       np = np + 1;
       fld = flds{i};
-      x{np} = attdat.numdate;
+      x{np} = attdat.Date_Time;
       y{np} = attdat.(fld);
     end
     % All 3 on one graph

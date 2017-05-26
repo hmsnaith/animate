@@ -1,6 +1,6 @@
 % Script to plot Hub attitude data from MySQL tables
 %% Setup variables
-bttdat = struct('numdate',[],...
+bttdat = struct('Date_Time',[],...
   'max_pitch',[],'min_pitch',[],'ave_pitch',[],...
   'max_roll',[],'min_roll',[],'ave_roll',[],...
   'max_mag_heading',[],'min_mag_heading',[],'ave_mag_heading',[],...
@@ -9,39 +9,28 @@ bttdat = struct('numdate',[],...
   'max_g_Z',[],'min_g_Z',[],'ave_g_Z',[]);
 flds = fieldnames(bttdat);
 
-plt = {'pitch','roll','mag_heading','g_X','g_Y','g_Z'};
+plts = {'pitch','roll','mag_heading','g_X','g_Y','g_Z'};
 pltTitle = {'Pitch','Roll','Magnetic Heading',...
   'Accelerometer X-axis','Accelerometer Y-axis','Accelerometer Z-axis'};
 %% Read in Values
 % Read data from MySQL database table
-db_tab=[db_table '_btt' num2str(m)];
+db_tab=[db_table '_btt'];
 s_str = ' order by Date_Time DESC';
-[DATA, rows] = mysql_animate(db_tab,pro_o_start_date,end_date,s_str);
-
-if (rows > 0)
-  % Convert Date and Time character string to datenum
-  bttdat.numdate = datenum(cell2mat({DATA(:).Date_Time}'),'yyyy-mm-dd HH:MM:SS')';
-  % transfer remaining data into data structure
-  for j=2:length(flds)
-    fld = flds{j};
-    % Copy measurements into structure
-    bttdat.(fld) = cell2mat({DATA(:).(fld)});
-  end
-end
+[bttdat, rows] = mysql_animate(db_tab,flds,start_date,end_date,s_str);
 %% Plot data
 % First, Pitch, Roll and Heading Max, Min & Average
 % Set legend string
 legend_M = {'Max','Min','Average'};
 for m=1:6
   % Set plot (variable) name
-  varStr = ['btt_' plt{m}];
+  varStr = ['btt_' plts{m}];
   % If we have data
   if rows>0
     % Set title
     varTitle = {['Hub ' pltTitle{m}], ...
-      ['Latest data: ' datestr(bttdat.numdate(end))]};
+      ['Latest data: ' datestr(bttdat.Date_Time(end))]};
     % Set Y axis label
-    y_lab = [plt{m} ' (Degrees)'];
+    y_lab = [plts{m} ' (Degrees)'];
     % Set Y Limits
     if m<=2
       varYlim = [-50 50];
@@ -59,15 +48,15 @@ for m=1:6
     for i = (2:4)+((m-1)*3);
       np = np + 1;
       fld = flds{i};
-      x{np} = bttdat.numdate;
+      x{np} = bttdat.Date_Time;
       y{np} = bttdat.(fld);
     end
     % All 3 on one graph
     animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
     % Max, Min and average on 3 subplots
-    animate_graphs_3(varTitle,[varStr '_3'],legend_M,varYlim,x,y);
-    % If we don't have data, create an 'empty plot' file
+    animate_graphs_n(varTitle,[varStr '_3'],legend_M,varYlim,x,y);
   else
+    % If we don't have data, create an 'empty plot' file
     empty_plot(varStr)
     empty_plot([varStr '_3'])
   end

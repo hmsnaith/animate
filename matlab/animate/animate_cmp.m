@@ -1,7 +1,7 @@
 % Script to plot Buoy attitude data from MySQL tables
 
 %% Setup variables
-cmpdat = struct('numdate',[],...
+cmpdat = struct('Date_Time',[],...
                 'max_pitch',[],'min_pitch',[],'ave_pitch',[],...
                 'max_roll',[],'min_roll',[],'ave_roll',[],...
                 'max_mag_heading',[],'min_mag_heading',[],'ave_mag_heading',[]);
@@ -13,18 +13,7 @@ pltTitle = {'Pitch','Roll','Magnetic Heading'};
 % Read data from MySQL database table
 db_tab=[db_table '_cmp' num2str(m)];
 s_str = ' order by Date_Time DESC';
-[DATA, rows] = mysql_animate(db_tab,pro_o_start_date,end_date,s_str);
-
-if (rows > 0)
-  % Convert Date and Time character string to datenum
-  cmpdat.numdate = datenum(cell2mat({DATA(:).Date_Time}'),'yyyy-mm-dd HH:MM:SS')';
-  % transfer remaining data into data structure
-  for j=2:length(flds)
-    fld = flds{j};
-    % Copy measurements into structure
-    cmpdat.(fld) = cell2mat({DATA(:).(fld)});
-  end
-end
+[cmpdat, rows] = mysql_animate(db_tab,flds,start_date,end_date,s_str);
 %% Plot data
 % First, Pitch, Roll and Heading Max, Min & Average
 % Set legend string
@@ -40,7 +29,7 @@ for m=1:3
     y_lab = [plt{m} ' (Degrees)'];
     % Set title
     varTitle = {['Buoy ' pltTitle{m}], ...
-                ['Latest data: ' datestr(cmpdat.numdate(end))]};
+                ['Latest data: ' datestr(cmpdat.Date_Time(end))]};
  % If we have data - plot and print graphs
     x = cell(1,3);
     y = x;
@@ -48,7 +37,7 @@ for m=1:3
     for i = (2:4)+((m-1)*3);
       np = np + 1;
       fld = flds{i};
-      x{np} = cmpdat.numdate;
+      x{np} = cmpdat.Date_Time;
       y{np} = cmpdat.(fld);
     end
     % All 3 on one graph
