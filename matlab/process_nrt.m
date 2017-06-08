@@ -4,9 +4,9 @@
 global webdir x_lab
 
 %% Deployment Info
-webdir = '/noc/users/animate/img/pap_2017_apr/';
-%webdir=['/noc/itg/www/apps/pap/' webd '/'];
-% webdir2='/data/ncs/www/eurosites/pap/pap_2017_apr/';
+%webdir = '/noc/users/animate/img/pap_2017_apr/';
+webdir = '/noc/itg/www/apps/pap/pap_2017_apr/';
+% webdir2 = '/data/ncs/www/eurosites/pap/pap_2017_apr/';
 
 deploy='201704';
 db_table=['PAP' deploy];
@@ -63,7 +63,7 @@ cyclops_offset = 0.0937;
 chlYlim = [0.0, 2.0]; % Used to set Y limits of chlorophyll graphs
 
 % Parameters for OC processing
-oc_nv = 2;
+oc_nv = 3;
 
 % Parameters for Wetlabs processing
 Fl_ref_constant=690;

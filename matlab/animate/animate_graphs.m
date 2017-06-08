@@ -57,52 +57,45 @@ end
 % If we are limiting Y axis, do it here
 if exist('varYlim','var') && ~isempty(varYlim), ylim(varYlim); end
 
-% Set tickmarks and x axis
+% Set tickmarks and x axis labels to short date
 set(gca,'XMinorTick','Off')
 datetick('x','dd/mm');
 
 %% Generate small plot version
 % Set paper size
 set(gcf,'paperunits','inches','paperposition',[0 0 1.9 1]);
+
 % Define axes position
 set(gca,'Position',[0.08 0.15 0.9 0.9]);
+
 % Set font size
 set(gca,'fontsize',3);
-% set(gcf,'CurrentAxes',hax);
+
 % Save plot
 saveas(gcf,[webdir 'small_' varStr '.png']);
 
 %% Generate large plot version
 % Reset paper size
 set(gcf,'paperunits','inches','paperposition',[0 0 6.5 4]);
+
 % Reset axes position
 set(gca,'Position',[0.08 0.1 0.9 0.8]);
-% plot(x,y,'-');
 
 % Reset font size
-set(gca,'fontsize',7);% Reset paper size and font size for large plot version
+set(gca,'fontsize',7);% Reset font size for large plot version
 
 % Add legend with reduced font
 if ~isempty(lgnd)
   hlegend=legend(lgnd,'location','best');
   set(hlegend,'FontSize',6);
 end
-% Add X tick labelling
-XTICK=get(gca,'XTick');
-[~, xcols]=size(XTICK);
-XTICKLAB = zeros(xcols,6);
-for j=1:xcols;
-  XTL=[datestr(XTICK(1,j),'dd') '-' datestr(XTICK(1,j),'mmm')];
-  for k=1:6, XTICKLAB(j,k)=XTL(1,k); end
-end
-set(gca,'XTickLabel',XTICKLAB);
+% Expand X tick labelling
+datetick('x','dd-mmm','keepticks');
 
 % Add title, x and y axis labels
 title(varTitle,'fontsize',9);
 xlabel(x_lab,'fontsize',8);
 ylabel(y_lab,'fontsize',10);
-% set(gcf,'CurrentAxes',hax);
-% if exist('varYlim','var') && ~isempty(varYlim), ylim(varYlim); end
 
 % Save to file
 saveas(gcf,[webdir varStr '.png']);

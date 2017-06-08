@@ -14,7 +14,7 @@ oc_channs={'412.4 nm','434.5 nm','470.2 nm','532.9 nm','555.0 nm','589.4 nm','68
 %2013 OCR3 === serial no DI70201
   
 ocTitle = {'Irradiance sensor 1: Upward looking in sensor frame', ...
-           'Irradiance sensor 2: Downward looking, in Sensor frame',...
+           'Irradiance sensor 2: Downward looking in Sensor frame',...
            'Irradiance sensor 3: Upward looking on the buoy'};
 flds = fieldnames(ocdat);
 units = {'\muW/cm^2/nm','\muW/cm^2/sr','\muW/cm^2/nm'};
@@ -49,7 +49,7 @@ end % end of OC dataset read loop
 % Set legend strings - generic for all 3
 %legend_M = ['Ch. 1','Ch. 2','Ch. 3','Ch. 5','Ch. 5','Ch. 6','Ch. 7'];
 % Set Y limits for variables
-varYlim=[0 10];
+varYlim=[0 10; 0 0.3; 0 200];
 
 for m=1:oc_nv
   % Set plot (variable) name
@@ -72,7 +72,7 @@ for m=1:oc_nv
       x{np} = ocdat(m).Date_Time;
       y{np} = ocdat(m).(fld);
     end
-    animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
+    animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim(m,:),x,y);
     % If we don't have data, create an 'empty plot' file
   else
     empty_plot(varStr)
