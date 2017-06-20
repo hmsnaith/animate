@@ -9,7 +9,7 @@ varStr = 'sun_1';
 % Read data from MySQL database table
 db_tab=[db_table '_sun'];
 s_str = ' and time_diff < 40000 order by Date_Time DESC';
-[sundat, rows] = mysql_animate(db_tab,flds,pro_o_start_date,end_date,s_str);
+[sundat, rows] = mysql_animate(db_tab,flds,start_date,end_date,s_str);
 
 if (rows > 0) % If we have data
   %% Create monthly averages

@@ -20,7 +20,7 @@ pltUnits = {'Chlorophyll-a (\mug/l)',...
 % Read data from MySQL database table
 db_tab=[db_table '_wet'];
 s_str = ' order by Date_Time DESC';
-[DATA, rows] = mysql_animate(db_tab,flds(1:end-1),pro_o_start_date,end_date,s_str);
+[DATA, rows] = mysql_animate(db_tab,flds(1:end-1),start_date,end_date,s_str);
 
 if (rows > 0)
   % transfer remaining data into data structure

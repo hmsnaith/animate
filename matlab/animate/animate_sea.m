@@ -129,12 +129,14 @@ for m=1:length(pflds)
     end
     x = cell(1,length(fpl));
     y = x;
-    np = 0;
+%    np = 0;
     for j = 1:length(fpl);
-      np = np + 1;
+%      np = np + 1;
       fld = fpl{j};
-      x{np} = seadat.Date_Time;
-      y{np} = seadat.(fld);
+%      x{np} = seadat.Date_Time;
+%      y{np} = seadat.(fld);
+      x{j} = seadat.Date_Time;
+      y{j} = seadat.(fld);
     end
     if pt == 1 % Standard graphs (multiple variables, 1 set of axes)
       animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
@@ -143,7 +145,7 @@ for m=1:length(pflds)
     elseif pt == 3 % stacked plots
       animate_graphs_n(varTitle,varStr,y_lab,varYlim,x,y);
     elseif pt == 4 % Quiver plots
-      %select time points closest to 0,6,12,18,
+      %select time points closest to 00:00, 06:00, 12:00 & 18:00,
       drift = 0.021; % 30 minutes as proportion of day 30/1440
       legend_M = {'00:00','06:00','12:00','18:00'};
       seanumtime = seadat.Date_Time-floor(seadat.Date_Time);

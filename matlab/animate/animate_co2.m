@@ -15,7 +15,7 @@ plt = struct('keel_pro_o_K_conc',[],...
              'keel_pro_o_K_gas',[],...
              'keel_pro_o_K_cell_temp',[]);
 plt.keel_pro_o_K_conc={'pro_o_K_conc', 'pCO2'};
-plt.pro_o_K_raw_co2={'pro_o_K_raw_co2'};
+plt.keel_pro_o_K_raw_co2={'pro_o_K_raw_co2'};
 plt.keel_pro_o_K_AZPC={'pro_o_K_AZPC'};
 plt.keel_pro_o_K_gas={'pro_o_K_gas_temp','pro_o_K_gas_humid','pro_o_K_gas_press'};
 plt.keel_pro_o_K_cell_temp={'pro_o_K_cell_temp'};
@@ -34,7 +34,7 @@ pltUnits = {'Concentration',...
 % Read data from MySQL database table
 db_tab=[db_table '_co2'];
 s_str = ' order by Date_Time ASC';
-[DATA, rows] = mysql_animate(db_tab,flds(1:end-1),pro_o_start_date,end_date,s_str);
+[DATA, rows] = mysql_animate(db_tab,flds(1:end-1),start_date,end_date,s_str);
 
 if (rows > 0)
   % transfer remaining data into data structure
@@ -48,20 +48,20 @@ if (rows > 0)
   proKdat.pCO2 = proKdat.pro_o_K_conc.*(proKdat.pro_o_K_gas_press/1013.25);
   % Reject values less than 10
   proKdat.pCO2(proKdat.pCO2 < 10) = NaN;
-%   qc = find(proKdat.pro_o_K_conc>0 & proKdat.pro_o_K_gas_press<1100 &...
-%             proKdat.pro_o_K_seconds<122 & proKdat.pro_o_K_cell_temp<50);
+  % Reject data with out of bounds concentrations, gas pressure, cell
+  % temperature of seconds
   qc = find(proKdat.pro_o_K_conc<=0 | proKdat.pro_o_K_gas_press>1100 |...
             proKdat.pro_o_K_seconds>122 | proKdat.pro_o_K_cell_temp>50);
-  for j=1:length(flds)
+  for j=2:length(flds)
     fld = flds{j};
-    % Copy measurements into structure
+    % Set rejected data to NaN
     proKdat.(fld)(qc) = NaN;
   end
   %% Create monthly averages
   numdate_vec = datevec(proKdat.Date_Time);
-  mnVar = proKdat.pCO2(qc);
+  mnVar = proKdat.pCO2;
   mnVname = 'pCO2_1';
-  monthly_average(deploy,start_year,end_year,numdate_vec(qc,:),mnVar,mnVname);
+  monthly_average(deploy,start_year,end_year,numdate_vec,mnVar,mnVname);
 end
 %% Plot data
 pflds = fieldnames(plt);
@@ -81,11 +81,11 @@ for m=1:length(pflds)
     % Set plot type, Y Limits
     switch varStr
       case {'keel_pro_o_K_conc'}
-        pt = 1; varYlim = [250 400];
+        pt = 1; varYlim = [0 500]; M = '+';
       case {'keel_pro_o_K_raw_co2','keel_pro_o_K_AZPC','keel_pro_o_K_cell_temp'}
-        pt = 1;
+        pt = 1; M = '-';
       case {'keel_pro_o_K_pressure'}
-        pt = 1; varYlim = [1000,1060];
+        pt = 1; varYlim = [1000,1060]; M = '-';
       case 'keel_pro_o_K_gas'
         pt = 3;
     end
@@ -108,7 +108,7 @@ for m=1:length(pflds)
       y{np} = proKdat.(fld);
     end
     if pt == 1 % Standard graphs (multiple variables, 1 set of axes)
-      animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
+      animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y,M);
     elseif pt == 2 % 2 parameters on seperate y axes
       animate_graphs_yy(varTitle,varStr,legend_M,varYlim,x,y);
     elseif pt == 3 % stacked plots
@@ -119,5 +119,45 @@ for m=1:length(pflds)
     % If we don't have data, create an 'empty plot' file
     empty_plot(varStr)
   end
-  
+end
+%% Plot additional 'daily max' plot for conc
+% Set plot (variable) name
+varStr = 'keel_pro_o_K_conc_dmax';
+if rows>0
+  % Set Y axis label
+  y_lab = pltUnits{1};
+  % Set y scaling
+  varYlim = [0 500];
+  % Set marker type
+  M = '+';
+  % Set title
+  varTitle = {'Pro-Oceanus data - Daily Maximum Carbon Dioxide at 1m', ...
+              ['Latest data: ' datestr(seadat.Date_Time(end))]};
+  % Set fields to plot
+  fpl = {'pro_o_K_conc', 'pCO2'};
+  % Set legend
+  legend_M = cell(1,length(fpl));
+  for j=1:length(fpl)
+    legend_M(j) = {param.(fpl{j})};
+  end
+  % Find daily maximum values
+  % days = dateshift(proKdat.Date_Time,'start','day');
+  days = floor(proKdat.Date_Time);
+  udays = unique(days);
+  ndays = length(udays);
+  x = cell(1,length(fpl));
+  y = x;
+  for j=1:length(fpl)
+    fld = fpl{j};
+    x{j} = udays;
+    y{j} = nan(size(udays));
+    for k=1:ndays
+      y{j}(k) = max(proKdat.(fld)(days==udays(k)));
+    end
+  end
+
+  animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y,M);
+else
+  % If we don't have data, create an 'empty plot' file
+  empty_plot(varStr)
 end

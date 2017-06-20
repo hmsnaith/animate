@@ -1,33 +1,80 @@
 % Script to plot Met data from MySQL table
 
 %% Setup variables
-% metdat = struct('numdate',[],...
-%   'air_press',[],'sea_temp',[],'wave_TP',[],...
-%   'Hsig',[],'Hmax',[],'wave_dir',[],'wave_spread',[],...
-%   'humidity',[],'humidity2',[],...
-%   'air_temp',[],'dew_temp',[],'air_temp2',[],'dew_temp2',[],...
-%   'wind_speed',[],'wind_gust',[],'wind_dir',[]);
-% flds = fieldnames(metdat);
-flds = {'Date_Time', 'air_press', 'sea_temp', 'wave_TP',...
-  'Hsig', 'Hmax', 'wave_dir', 'wave_spread', ...
-  'humidity', 'humidity_2', ...
-  'air_temp', 'dew_temp', 'air_temp_2', 'dew_temp_2', ...
-  'wind_speed', 'wind_gust', 'wind_dir'};
+metdat = struct('Date_Time',[],...
+   'air_press',[],'sea_temp',[],'wave_TP',[],...
+  'Hsig',[],'Hmax',[],'wave_dir',[],'wave_spread',[],...
+  'humidity',[],'humidity_2',[],...
+  'air_temp',[],'dew_temp',[],'air_temp_2',[],'dew_temp_2',[],...
+  'wind_speed',[],'wind_gust',[],'wind_dir',[]);
+flds = fieldnames(metdat);
 
 % Define plots & legends
-plt = {'air_press','sea_temp','waveTP','waveH','waveDir','humidity',...
-  'temp','temp2','wind','wind2'};
-pltLegend = {{''},{''},{''},...
-  {'Significant Wave Height','Maximum Wave Height'},...
-  {'Direction','Spread'},{'Sensor 1','Sensor 2'},...
-  {'Air','Dew Point'},{'Air','Dew Point'},...
-  {'Speed knots','Gust  knots','Direction'}...
-  };
-pltTitle = {'Air Pressure','Sea Surface Temperature','Wave Peak Period',...
-  'Wave Heights','Wave Direction','Humidity - UK Met.Office',...
-  'Temperatures--UK Met.Office','Temperatures 2nd Set--UK Met.Office','Wind','Wind'};
-pltYlab = {'hectopascal','\circC','',...
-  'm','Degrees','%','\circC','\circC','',''};
+plt = struct('air_press',[],...
+       'sea_temp',[],...
+       'temp',[],...
+       'temp_3',[],...
+       'humidity',[],...
+       'waveTP',[],...
+       'waveH',[],....
+       'waveDir',[],...
+       'wave_arrow',[],...
+       'wind',[],...
+       'wind_2',[],...
+       'wind_arrow',[]);
+%        'temp2',[]); % If we have a second sensor
+plt.air_press={'air_press'};
+plt.sea_temp={'sea_temp'};
+plt.temp={'air_temp','dew_temp'};
+plt.temp_3={'sea_temp','air_temp','dew_temp'};
+plt.humidity={'humidity'}; % {'humidity','humidity_2'}; % 2 sensors
+plt.waveTP={'wave_TP'};
+plt.waveH={'Hsig','Hmax'};
+plt.waveDir={'wave_dir','wave_spread'};
+plt.wave_arrow={'Hsig','wave_dir'};
+plt.wind={'wind_speed','wind_gust','wind_dir'};
+plt.wind_2={'wind_speed','wind_gust','wind_dir'};
+plt.wind_arrow={'wind_speed','wind_dir'};
+% plt.temp2={'air_temp_2','dew_temp_2'};
+pltTitle = {'Air Pressure',...
+            'Sea Surface Temperature',...
+            'Temperatures - UK Met.Office',...
+            'Temperatures - UK Met.Office',...
+            'Humidity - UK Met.Office',...
+            'Wave Peak Period',...
+            'Wave Heights',...
+            'Wave Direction',...
+            'Wave Direction : Arrows show direction and relative speed',...
+            'Wind',...
+            'Wind',...
+            'Wind Direction : Arrows show direction and relative speed'};
+%             'Temperatures 2nd Set--UK Met.Office'} % For second sensor
+pltLeg = {{''},... % air_press
+          {''},... % sea_temp
+          {'Air','Dew Point'},... % Air & Dew temp
+          {'Sea','Air','Dew'},... % Sea, Air & Dew temp
+          {''},... % Humidity {'Sensor 1','Sensor 2'},... % For second sensor
+          {''},... % Wave period
+          {'Significant Wave Height','Maximum Wave Height'},... % Wave Heights
+          {'Direction','Spread'},... % Wave Direction
+          {'',''},... % Wave Direction quiver
+          {'Speed knots','Gust knots','Direction'},... % Wind speed, gust & Dir - 1plot
+          {'Speed knots','Gust knots','Direction'},... % Wind speed, gust & Dir - 3plots
+          {'','',''}}; % Wind speed & dir quiver
+%           {'Air','Dew Point'}}; % For second sensor
+pltYlab = {'hectopascal',... % air_press
+           '\circC',... % sea_temp
+           '\circC',... % Air & Dew temp
+           {'Sea Temp. (\circC)','Air Temp. (\circC)','Dew Point (\circC)'},... % Sea, Air & Dew temp
+           '%',... % Humidity
+           's',... % Wave period
+           'm',... % Wave Heights
+           'Dir (\circC)',... % Wave Direction
+           '\circC)',... % Wave Direction quiver
+          {'Speed knots','Gust knots','Direction'},... % Wind speed, gust & Dir - 1plot
+          {'Speed knots','Gust knots','Direction'},... % Wind speed, gust & Dir - 3plots
+          {'','',''}}; % Wind speed & dir quiver
+%            '\circC'}; % For second sensor
 
 %% Read in Values and apply QC
 % Read data from MySQL database table
@@ -36,33 +83,24 @@ s_str = ' order by Date_Time DESC';
 [metdat, rows] = mysql_animate(db_tab,flds,start_date,end_date,s_str);
 
 if (rows > 0)
-%   % Convert Date and Time character string to datenum
-%   metdat.numdate = datenum(cell2mat({DATA(:).Date_Time}'),'yyyy-mm-dd HH:MM:SS')';
-%   % transfer remaining data into data structure
-%   for j=2:length(flds)
-%     fld = flds{j};
-%     % Copy measurements into structure
-%     metdat(m).(fld) = cell2mat({DATA(:).(fld)});
-%   end
-% 
   % Apply out of bounds checks
   metdat.air_temp(metdat.air_temp<0 | metdat.air_temp>50) = NaN;
   metdat.sea_temp(metdat.sea_temp<0 | metdat.sea_temp>50) = NaN;
   metdat.dew_temp(metdat.dew_temp<0 | metdat.dew_temp>50) = NaN;
   metdat.humidity(metdat.humidity<0) = NaN;
-  metdat.humidity2(metdat.humidity2<0) = NaN;
+  metdat.humidity_2(metdat.humidity_2<=0) = NaN;
 
   % Check Hsig and wind_gust not null
   if isempty(metdat.Hsig)
-    metdat.HSig = NaN(1,rows);
+    metdat.Hsig = NaN(1,rows);
   elseif length(metdat.Hsig)<rows
-    metdat.HSig = NaN(1,rows);
+    metdat.Hsig = NaN(1,rows);
     tmp = {DATA(:).Hsig};
     for i=1:rows
-      if ~isempty(tmp{i}), metdat.HSig(i) = tmp{i}; end
+      if ~isempty(tmp{i}), metdat.Hsig(i) = tmp{i}; end
     end
   end
-  metdat.HSig(metdat.HSig>99) = NaN;
+  metdat.Hsig(metdat.Hsig>99) = NaN;
   if isempty(metdat.wind_gust)
     metdat.wind_gust = NaN(1,rows);
   elseif length(metdat.wind_gust)<rows
@@ -75,144 +113,93 @@ if (rows > 0)
   % end of data input
   %% Create monthly averages
   % monthly averages
-  numdate_vec = datevec(metdat.Date_Time);
-  for fld = {'temp','S','ox_mol','ox_mol_comp'}
-    mnVname=char(fld);
-    mnVar = smetdat.(char(fld));
-    monthly_average(deploy,start_year,end_year,numdate_vec,mnVar,mnVname);
-  end
-  
-  %monthly averages
-  zqzq=find((wind_dir > 0) & (wind_speed > 0));
+  zqzq=find((metdat.wind_dir > 0) & (metdat.wind_speed > 0));
   numdate_vec=datevec(metdat.Date_Time(zqzq));
-  mnVar=wind_speed(zqzq);
+  mnVar=metdat.wind_speed(zqzq);
   mnVname='wind_speed';
-  monthly_average;
+  monthly_average(deploy,start_year,end_year,numdate_vec,mnVar,mnVname);
+  
 end;
 
 %% Plot data
 
+pflds = fieldnames(plt);
 % for each plot
-for m=1:length(plt)
+for m=1:length(pflds)
   % Set plot (variable) name
-  varStr = ['met_' plt{m}];
+  varStr = ['met_' pflds{m}];
   % If we have data
   if rows>0
-    % Set Y limits for variables
-    varYlim=0;
-    if m==1
-      varYlim = [900 1100];
-    end
+    % Set y axis label
+    y_lab = pltYlab{m};
+    % Assume no y scaling
+    varYlim=[];
     % Set title
     varTitle = {pltTitle{m},...
       ['Latest data: ' datestr(metdat.Date_Time(1))]};
-    % Set legend string
+    % Set fields to plot
+    fpl = plt.(pflds{m});
+    % Set plot type, Y Limits and qc
+    qc = [];
+    switch varStr
+      case {'met_air_press'}
+        pt = 1; varYlim = [900 1100];
+      case {'met_waveH'}
+        pt = 1; varYlim = [0 min(50,max(max(metdat.Hmax),max(metdat.Hsig)))];
+      case {'met_temp_3'}
+        % Only use data where air/sea temp difference <4
+        pt = 1; qc = find(abs(metdat.sea_temp-metdat.air_temp)>=4);
+      case {'met_wind_2'}
+        pt = 2;
+      case {'met_wave_arrow'}
+        pt = 4; d = 0; % quiver - directions given 'to'
+      case {'met_wind_arrow'}
+        pt = 4; d = 180; % quiver - directions given 'from'
+      otherwise
+        pt = 1;
+    end
+    % Set legend
     legend_M = pltLeg{m};
-    % Set y axis label
-    y_lab = pltYlab{m};
-    % Set number of plots
-    if m<=3
-      p = m+1;
-    elseif m<=7;
-      p = m+((m-4)*2)+1:m+((m-3)*2);
-    else
-      p = m+((m-8)*3)+1:m+((m-7)*3);
-    end
-    nps = length(p);
     % plot and print graphs
-    x = cell(1,nps);
+    x = cell(1,length(fpl));
     y = x;
-    np = 0;
-    for i = p;
-      np = np + 1;
-      fld = flds{i};
-      x{np} = metdat.Date_Time;
-      y{np} = metdat.(fld);
+    for i = 1:length(fpl);
+      fld = fpl{i};
+      x{i} = metdat.Date_Time;
+      y{i} = metdat.(fld);
+      if ~isempty(qc), y{i}(qc) = NaN; end
     end
-    % All on one graph
-    animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
-    % Wind data on 3 seperate graphs
-    % - we actually want speed&gust on one, dir on another...
-    if m==8
-      animate_graphs_n(varTitle,[varStr '_3'],legend_M,varYlim,x,y);
-    end
-    % If we don't have data, create an 'empty plot' file
-  else
-    empty_plot(varStr)
-  end
-end
 
-% Additional plots
-% sea temp, air temp and dew temp on one graph
-varStr = 'met_temp3';
-if rows > 0
-  % Set Y limits for variables
-  varYlim=0;
-  % Set title
-  varTitle = {'Temperatures--UK Met.Office',...
-    ['Latest data: ' datestr(metdat.Date_Time(1))]};
-  % Set legend string
-  legend_M = {'Sea surface','Air','Dew Point'};
-  % Set y axis label
-  y_lab = '\circC';
-  % Only use data where air/sea temp difference <4
-  qc = find(abs(metdat.sea_temp-metdat.air_temp)<4);
-  % plot and print graphs
-  x = cell(1,3);
-  y = x;
-  np = 0;
-  for i = [3 11 12];
-    np = np + 1;
-    fld = flds{i};
-    x{np} = metdat.Date_Time(qc);
-    y{np} = metdat.(fld)(qc);
-  end
-  % All 3 on one graph
-  animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
-  % If we don't have data, create an 'empty plot' file
-else
-  empty_plot(varStr)
-end
-
-% Quiver plots - plot records at 00:00, 06:00, 12:00 & 18:00, +/1 5 mins
-drift = 0.0035; % 5 minutes as proportion of day 5/1440
-for i = [7 16]
-  if i==7
-    varStr = 'met_wave_arrow';
-    pltT = 'Wind';
-    fld2 = flds{i-2};
-  else
-    varStr = 'met_wind3';
-    pltT = 'Wave';
-    fld2 = flds{i-1};
-  end
-  if rows>0
-    varTitle = {[pltT ' Direction : Arrows show direction and relative speed'],...
-      ['Latest data: ' datestr(metdat.Date_Time(1))]};
-    legend_M = {'00:00','06:00','12:00','18:00'};
-    fld = flds{i};
-    w_dir = metdat.(fld)+180;
-    u = sin(w_dir*0.0175).* metdat.(fld2);    % pi/180
-    v = cos(w_dir*0.0175).* metdat.(fld2);
-    metnumtime = metdat.Date_Time-floor(metdat.Date_Time);
-    x = cell(1,4);
-    y = x; up = x; vp = x;
-    for  k = 1:4
-      if k==1
-        kk = find(metnumtime>1-drift | metnumtime<drift);
-      else
-        td = 0.25*(k-1);
-        kk = find(metnumtime>td-drift & metnumtime<td+drift);
+    if pt == 1 % Standard graphs (multiple variables, 1 set of axes)
+      animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
+    elseif pt == 2 % 2 parameters on seperate y axes
+      animate_graphs_yy_1(varTitle,varStr,legend_M,varYlim,x,y);
+    elseif pt == 3 % stacked plots
+      animate_graphs_n(varTitle,varStr,y_lab,varYlim,x,y);
+    elseif pt == 4 % Quiver plots
+      %select time points closest to 00:00, 06:00, 12:00 & 18:00,
+      drift = 0.0035; % 5 minutes as proportion of day 5/1440
+      legend_M = {'00:00','06:00','12:00','18:00'};
+      metnumtime = metdat.Date_Time-floor(metdat.Date_Time);
+      x = cell(1,4);
+      y = x; u = x; v = x;
+      for  k = 1:4
+        if k==1
+          kk = find(metnumtime>1-drift | metnumtime<drift);
+        else
+          td = 0.25*(k-1);
+          kk = find(metnumtime>td-drift & metnumtime<td+drift);
+        end
+        x{k} = metdat.Date_Time(kk);
+        y{k} = ones(size(metdat.Date_Time(kk)));
+        u{k} = metdat.(fpl{1})(kk).*sind(d-metdat.(fpl{2})(kk));
+        v{k} = metdat.(fpl{1})(kk).*cosd(d-metdat.(fpl{2})(kk));
       end
-      x{k} = metdat.Date_Time(kk);
-      y{k} = ones(size(metdat.Date_Time(kk)));
-      up{k} = u(kk);
-      vp{k} = v(kk);
+      animate_quiver(varTitle,varStr,y_lab,legend_M,varYlim,x,y,u,v);
+     
     end
-    animate_quiver(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
-    
   else
+    % If we don't have data, create an 'empty plot' file
     empty_plot(varStr)
   end
 end
-

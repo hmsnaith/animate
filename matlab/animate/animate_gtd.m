@@ -10,7 +10,7 @@ varStr = 'gtd_1';
 % Read data from MySQL database table
 db_tab=[db_table '_gtd'];
 s_str = ' and time_diff < 40000 order by Date_Time DESC';
-[gtddat, rows] = mysql_animate(db_tab,flds,pro_o_start_date,end_date,s_str);
+[gtddat, rows] = mysql_animate(db_tab,flds,start_date,end_date,s_str);
 
 %% Plot data
 if (rows > 0) % If we have data
@@ -18,7 +18,8 @@ if (rows > 0) % If we have data
   legend_M = '';
   
   % Set Y limits for variables
-  varYLim = [250 400];
+  % varYLim = [250 400];
+  varYLim = [];
   
   % If we have data - plot and print graphs
   x = {gtddat.Date_Time};
