@@ -52,18 +52,7 @@ set(gca,'Position',[0.08 0.1 0.8 0.8]);
 % Reset font size
 set(gca,'fontsize',7);% Reset paper size and font size for large plot version
 
-% Add X tick labelling
-% set(gca,'XMinorTick','Off')
-% datetick('x','dd/mm');
-XTICK=get(gca,'XTick');
-[~, xcols]=size(XTICK);
-for j=1:xcols;
-  XTL=[datestr(XTICK(1,j),'dd') '-' datestr(XTICK(1,j),'mmm')];
-  for k=1:6, XTICKLAB(j,k)=XTL(1,k); end
-end
-set(gca,'XTickLabel',XTICKLAB);
-
-% Add title, x and y axis labels
+% Add title, resize x and y axis labels
 title(varTitle,'fontsize',9);
 xlabel(x_lab,'fontsize',8);
 ylabel(AX(1),y_lab{1},'fontsize',10);

@@ -25,7 +25,7 @@ for m=1:oc_nv
   % Read data from MySQL database table
   db_tab=[db_table '_oc' num2str(m)];
   s_str = ' order by Date_Time DESC';
-  [DATA, ocdat(m).n] = mysql_animate(db_tab,flds(2:end),pro_o_start_date,end_date,s_str);
+  [DATA, ocdat(m).n] = mysql_animate(db_tab,flds(2:end),start_date,end_date,s_str);
   
   if (ocdat(m).n > 0)
     % transfer data into data structure

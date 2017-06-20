@@ -1,4 +1,4 @@
-function animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y)
+function animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y,M)
 % Plot a small and large graph as png for given parameter for several instruments
 % Input:
 %   varTitle: Plot title
@@ -32,6 +32,10 @@ elseif ischar(legend_M)
 else
   lgnd = [];
 end
+if nargin<8
+  M = '-';
+end
+  
 
 %% Plot data
 p = 0;
@@ -51,7 +55,7 @@ for i=1:length(x);
       end
     end
     % plot variable
-    plot(x{i},y{i},'-','Color',c(p,:));
+    plot(x{i},y{i},M,'Color',c(p,:));
   end
 end
 % If we are limiting Y axis, do it here

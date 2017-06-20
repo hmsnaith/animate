@@ -4,11 +4,8 @@
 %   'fl_chl_ref',[],'fl_chl',[],'fl_ntu_ref',[],...
 %   'fl_ntu',[],'fl_thermistor',[],'fl_pressure',[]);
 wetdat = struct('Date_Time',[],...
-  'fl_chl_ref',[],'fl_chl',[],'fl_ntu',[],'Chl',[]);
+                'fl_chl_ref',[],'fl_chl',[],'fl_ntu',[],'Chl',[]);
 flds = fieldnames(wetdat);
-param = struct('pro_o_K_seconds',[],'pro_o_K_conc','xCO_2 (ppm)','pro_o_K_cell_temp',[],...
-  'pro_o_K_AZPC','eng, units','pro_o_K_raw_co2','eng, units','pro_o_K_gas_temp',[],...
-  'pro_o_K_gas_humid',[],'pro_o_K_gas_press','Pressure (mb)','pCO2','pCO_2 (\muatm)');
 
 plt = struct('wetlabs',[],...
              'wetlabs_ntu',[]);
@@ -23,7 +20,7 @@ pltUnits = {'Chlorophyll-a (\mug/l)',...
 % Read data from MySQL database table
 db_tab=[db_table '_wet'];
 s_str = ' order by Date_Time DESC';
-[DATA, rows] = mysql_animate(db_tab,flds(1:end-1),pro_o_start_date,end_date,s_str);
+[DATA, rows] = mysql_animate(db_tab,flds(1:end-1),start_date,end_date,s_str);
 
 if (rows > 0)
   % transfer remaining data into data structure
@@ -51,7 +48,7 @@ if (rows > 0)
   numdate_vec = datevec(wetdat.Date_Time);
   mnVar = wetdat.Chl;
   mnVname = 'wetlabs_Chl';
-  monthly_average(deploy,start_year,end_year,numdate_vec(qc,:),mnVar,mnVname);
+  monthly_average(deploy,start_year,end_year,numdate_vec,mnVar,mnVname);
 end
 %% Plot data
 pflds = fieldnames(plt);

@@ -79,26 +79,16 @@ set(gca,'Position',[0.08 0.1 0.9 0.85]);
 % Reset font size
 set(gca,'fontsize',7);% Reset paper size and font size for large plot version
 
-% Add legend with reduced font
-if ~isempty(lgnd)
-  hlegend=legend(lgnd,'location','best');
-  set(hlegend,'FontSize',6);
-end
-
-% Add X tick labelling
-XTICK=get(gca,'XTick');
-[~, xcols]=size(XTICK);
-XTICKLAB = zeros(xcols,6);
-for j=1:xcols;
-  XTL=[datestr(XTICK(1,j),'dd') '-' datestr(XTICK(1,j),'mmm')];
-  for k=1:6, XTICKLAB(j,k)=XTL(1,k); end
-end
-set(gca,'XTickLabel',XTICKLAB);
+% % Add legend with reduced font
+% if ~isempty(lgnd)
+%   hlegend=legend(lgnd,'location','best');
+%   set(hlegend,'FontSize',6);
+% end
 
 % Add title, x and y axis labels
 title(varTitle,'fontsize',10);
 xlabel(x_lab,'fontsize',8);
-ylabel(y_lab,'fontsize',10);
+ylabel(y_lab,'fontsize',8);
 
 % Save to file
 saveas(gcf,[webdir varStr '.png']);
