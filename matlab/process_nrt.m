@@ -116,10 +116,9 @@ end_year=start_year+1;
 
 %% Read, QC and plot data
 % % Add paths for necessary functions
-%addpath('/noc/packages/satprogs/satmat/mysql');
 addpath('/noc/users/animate/animate/matlab/mysql');
-addpath '/noc/users/animate/animate/matlab/animate';
-% addpath '/noc/users/animate/matlab/seawater';
+addpath('/noc/users/animate/animate/matlab/seawater');
+addpath '/noc/users/animate/animate/matlab/animate_graphs';
 
 % Plot position info first - from gps and met sources
 animate_lat_lon(db_table, '_gps', '', {start_date end_date}, {'Latitude','Longitude'},...
