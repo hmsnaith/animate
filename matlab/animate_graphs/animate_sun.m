@@ -22,7 +22,7 @@ if (rows > 0) % If we have data
   legend_M = '';
   
   % Set Y limits for variables
-  varYLim = [250 400];
+  varYlim = [250 400];
   
   % If we have data - plot and print graphs
   x = {sundat.Date_Time};

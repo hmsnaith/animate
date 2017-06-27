@@ -32,7 +32,7 @@ if (rows > 0) % If we have data
   legend_M = {'xCO_2 (ppm)','pCO_2 (\muatm)'};
   
   % Set Y limits for variables
-  varYLim = [250 400];
+  varYlim = [250 400];
   
   % If we have data - plot and print graphs
   x = {prodat.Date_Time, prodat.Date_Time};

@@ -18,8 +18,8 @@ if (rows > 0) % If we have data
   legend_M = '';
   
   % Set Y limits for variables
-  % varYLim = [250 400];
-  varYLim = [];
+  % varYlim = [250 400];
+  varYlim = [];
   
   % If we have data - plot and print graphs
   x = {gtddat.Date_Time};
