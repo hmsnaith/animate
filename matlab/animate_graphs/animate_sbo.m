@@ -64,7 +64,7 @@ for m=1:sbo_nv;
     qc = find((sbodat(m).S < 34.5) | (sbodat(m).S > 35.7));
     if (~isempty(qc))
       disp(' potential out of range SBO salinity');
-      fprintf('    %s\n',datestr(sbodat(m).numdate(qc)));
+      fprintf('    %s\n',datestr(sbodat(m).Date_Time(qc)));
     end
     
     % Calculate SigmaT
@@ -88,7 +88,6 @@ for m=1:sbo_nv;
   % end of data input
   %% Create monthly averages
   % monthly averages
-%   numdate_vec = datevec(sbodat(m).numdate);
   numdate_vec = datevec(sbodat(m).Date_Time);
   for fld = {'temp','S','ox_mol','ox_mol_comp'}
     mnVar = sbodat(m).(char(fld));
