@@ -2,8 +2,8 @@
 % should be in calling script
 %20140514 cell methods removed LATITUDE LONGITUDE
 
-oceansites_ref_tables;
-if   ~exist('institution_references')
+[ref_tab_2, ref_tab_3] = oceansites_ref_tables;
+if   ~exist('institution_references','var')
   institution_references='http://www.noc.soton.ac.uk';
 end
 author='Maureen Pagnani';
@@ -13,17 +13,17 @@ data_assembly_center='FixO3 DAC'
 publisher_url='http://www.fixo3.eu';
 contacts_email='noc-bodc@noc.soton.ac.uk'
 
-if (exist('comment_in')<1) comment_in='no comment'; end;
+if ~exist('comment_in','var'), comment_in='no comment'; end;
 %QC_indicator='1';
 
-quality_control_indicator=ref_tab_2{QC_indicator+1}; 				%see Oceansites table 2.1
-if (exist('quality_index')<1) quality_index='B'; end;    %see Oceansites manual global attibute depending on source B pre PI, A after PI
+quality_control_indicator = ref_tab_2{QC_indicator+1}; 				%see Oceansites table 2.1
+if ~exist('quality_index','var') quality_index='B'; end;    %see Oceansites manual global attibute depending on source B pre PI, A after PI
 
 % currently only ????_QC ancillary_variables='';
 references=' http://www.fixo3.eu, http://www.oceansites.org, http://www.coriolis.eu.org, http://www.eurosites.info';
 update_interval='void';
 time_uncertainty=0.000005;   % 2.3 mins per year  0.5 second a day
-if (exist('qc_manual')<1)
+if ~exist('qc_manual','var')
 	if (mode =='D')
 	  qc_manual='Calibration of Physical Data Microcat, TD-Logger, ADCP, RCM by Johannes Karstensen, IFM-GEOMAR, January 2005';
 	else
@@ -32,7 +32,7 @@ if (exist('qc_manual')<1)
 end
 qc_manual
 data_source='Mooring observation';
-if exist('data_area')<1 nc.area='North Atlantic Ocean'; 
+if ~exist('data_area','var') nc.area='North Atlantic Ocean'; 
 else                    nc.area=data_area;
 end
 os_platform_category='Physical, Biogeochemical';
@@ -76,7 +76,7 @@ long_resolution=999;
 
 %values copied from http://tao.noaa.gov/proj_overview/sensors_ndbc.shtml for seabird SBE37 
 
-% will not be outputif valu is 999;
+% will not be output if value is 999;
 temp_uncertainty=999;
 temp_accuracy=0.003;
 temp_precision=999;

@@ -1,26 +1,29 @@
-% oceansites reference tables
+function [ref_tab_2, ref_tab_3] = oceansites_ref_tables
+% Returns oceansites reference tables 2 and 3 as cell arrays
 %QC markers
 ref_tab_2={
-'unknown';
-'good_data';
-'probably_good_date';
-'potentially_correctable_bad_data';
-'bad_data';
-'';
-'';
-'nominal_value';
-'interpolated_value';
-'missing_value'};
+'unknown'; % 1
+'good_data'; % 2
+'probably_good_date'; % 3
+'potentially_correctable_bad_data'; % 4
+'bad_data'; % 5
+''; % 6
+''; % 7
+'nominal_value'; % 8
+'interpolated_value'; % 9
+'missing_value'}; % 10
+
 %QC procedure level
 ref_tab_3={
-'Raw instrument data';
-'Instrument data that has been converted to geophysical values';
-'Post-recovery calibrations have been applied';
-'Data has been scaled using contextual information';
-'Known bad data has been replaced with null values';
-'Known bad data has been replaced with values based on surrounding data';
-'Ranges applied, bad data flagged ';
-'Data interpolated ';
-'Data manually reviewed ';
-'Data verified against model or other contextual information ';
-'Other QC process applied '};
+'Raw instrument data'; % 1
+'Instrument data that has been converted to geophysical values'; % 2
+'Post-recovery calibrations have been applied'; % 3
+'Data has been scaled using contextual information'; % 4
+'Known bad data has been replaced with null values'; % 5
+'Known bad data has been replaced with values based on surrounding data'; % 6
+'Ranges applied, bad data flagged '; % 7
+'Data interpolated '; % 8
+'Data manually reviewed '; % 9
+'Data verified against model or other contextual information '; % 10
+'Other QC process applied ' % 11
+};
