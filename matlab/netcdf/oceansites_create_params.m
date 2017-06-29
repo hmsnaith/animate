@@ -1,32 +1,36 @@
+function [g] = oceansites_create_params(meta)
+
+osite_dfmt = 'yyyy-mm-ddTHH:MM:SSZ';
+start_date = datestr(sdate,osite_dfmt);
+end_date = datestr(edate,osite_dfmt);
+create_date = datestr(now,osite_dfmt);
 %% Define global attributes from metadata
-g.site_code = site.site_code;
-g.platform_code = site.platform_code;
-g.data_mode = dat.mode;
-g.title = ['OceanSITES ' OS_mooring ' in-situ data'];
-g.summary = strcat(l0a,' ',l0b;
+g.site_code = meta.os_site_code;
+g.platform_code = meta.os_platform_code;
+g.data_mode = meta.mode;
+g.title = ['OceanSITES ' meta.os_site_code ' in-situ data'];
+g.summary = [meta.project_title ' ' meta.project_contract];
 g.naming_authority = 'OceanSITES';
 %g.data_type = 'OceanSITES time-series data';
-id_len=length(OS_name)-3;
-id_in=OS_name(1:id_len;
-g.id = id_in;
-g.name = id_in;
+g.id = ['OS_' meta.os_platform_code '_', OS_date '_' meta.mode '_' meta.data_type];
+g.name = g.id;
 g.wmo_platform_code = wmo_platform_code;
 g.source = 'Mooring observation';
-if exist('pi_name') g.principal_investigator = pi_name;          end;
-if exist('pi_email') g.principal_investigator_email = pi_email; end;
-if exist('pi_url') g.principal_investigator_url = pi_url;     end;
+if fiedname(meta,'pi_name'),  g.principal_investigator = meta.pi_name; end;
+if fiedname(meta,'pi_email'), g.principal_investigator_email = meta.pi_email; end;
+if fiedname(meta,'pi_url'),   g.principal_investigator_url = meta.pi_url; end;
 g.institution = source_institution;
-if exist('sdn_edmo_code') g.sdn_edmo_code = sdn_edmo_code;      end
-if exist('project') g.project = project;                        end;
-if exist('os_array') g.array = os_array;         	             end;
-if exist('os_network') g.network = os_network;
-else g.network,'FixO3' ;
+if fiedname(meta,'sdn_edmo_code') g.sdn_edmo_code = meta.sdn_edmo_code; end
+if fiedname(meta,'project') g.project = meta.project; end;
+if fiedname(meta,'os_array') g.array = meta.os_array; end;
+if fiedname(meta,'os_network') g.network = meta.os_network; end
+else g.network = 'FixO3' ;
 end
-if exist('keywords_vocabulary')
- g.keywords_vocabulary = keywords_vocabulary;  
- g.keywords = keywords;   
+if fiedname(meta,'keywords_vocabulary')
+  g.keywords_vocabulary = meta.keywords_vocabulary;
+  g.keywords = meta.keywords;
 end;
-g.comment = comment_in;
+g.comment = meta.comment_in;
 
 
 %%%%%%%%%%%%%WHERE
