@@ -1,22 +1,4 @@
-%addpath /noc/users/animate/exec;
-addpath /noc/users/animate/lib;
-addpath /noc/users/animate/animate_matlab;
-addpath /noc/users/animate/animate_matlab/params;
-switch project
-	case 'ANIMATE  '
-	      lcitation=strvcat(' ','When you use ANIMATE data in publications please acknowledge the ANIMATE Project quoting EU FP5 contract EVR1-CT-2001-40014.','Also, we would appreciate receiving a preprint and/or reprint of publications utilizing these data for inclusion in the ANIMATE bibliography.','These publications should be sent to:','ANIMATE Data Manager - BODC Data Management,','National Oceanography Centre, Southampton,','SO14 3ZH, UK');
-	case 'MERSEA   ' 
-	      lcitation=strvcat(' ','When you use MERSEA data in publications please acknowledge the MERSEA Project quoting EU FP6 contract AIP3-CT-2003-502885.','Also, we would appreciate receiving a preprint and/or reprint of publications utilizing these data for inclusion in the ANIMATE/MERSEA bibliography.','These publications should be sent to:','ANIMATE/MERSEA Data Manager - BODC Data Management,','National Oceanography Centre, Southampton,','SO14 3ZH, UK');
-	case 'EuroSITES' 
-	      lcitation=strvcat(' ','When you use EuroSITES data in publications please acknowledge the EuroSITES Project (Call FP7-ENV-2007-1, grant agreement No 202955).','Also, we would appreciate receiving a preprint and/or reprint of publications utilizing these data for inclusion in the EuroSITES bibliography.','These publications should be sent to:','EuroSITES Data Manager - BODC Data Management, National Oceanography Centre, Southampton,','SO14 3ZH, UK');
-	case 'FixO3' 
-	      lcitation=strvcat(' ','When you use FixO3 data in publications please acknowledge the FixO3 Project (FP7/2007-2013, grant agreement No 312463).','Also, we would appreciate receiving a preprint and/or reprint of publications utilizing these data for inclusion in the FixO3 bibliography.','These publications should be sent to:','FixO3 Project Co-ordinator, National Oceanography Centre, Southampton,','SO14 3ZH, UK');
-
-    otherwise
-	      lcitation=strvcat(' ','When you use this data in publications we would appreciate receiving a preprint and/or reprint of publications utilizing these data for inclusion in the bibliography.','These publications should be sent to:','BODC Data Management, , National Oceanography Centre, Southampton,','SO14 3ZH, UK');
-	      lcitation=' ';
-
-end
+function microcat_rt_1_3(site,dep,dat,v)
 
 microcat_type; % oct 2010
 sensor_type=mc_sensor_type;
@@ -25,7 +7,7 @@ sensor_type=mc_sensor_type;
 
 
 
-multiplier=3.29;
+%multiplier=3.29;
 %for j=1:nvar;
 % range by std does not work for temperature
 %	iii=find(TQ(:,j)<2);
@@ -77,7 +59,7 @@ end
 end
 DIR=cdout;
 cd(DIR);
-% create space and comma delimited file
+%% create space and comma delimited file
 [yyyy,mon,day,hh,mm,ss]=datevec(DateTime);
 clear kkk;
 kkk=find(ss>=59.55);
