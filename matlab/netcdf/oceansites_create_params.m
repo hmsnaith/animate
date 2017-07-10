@@ -1,158 +1,190 @@
-function [g] = oceansites_create_params(meta)
+function [g,d,v] = oceansites_create_params(meta)
 
-osite_dfmt = 'yyyy-mm-ddTHH:MM:SSZ';
-start_date = datestr(sdate,osite_dfmt);
-end_date = datestr(edate,osite_dfmt);
-create_date = datestr(now,osite_dfmt);
-%% Define global attributes from metadata
-g.site_code = meta.os_site_code;
-g.platform_code = meta.os_platform_code;
-g.data_mode = meta.mode;
-g.title = ['OceanSITES ' meta.os_site_code ' in-situ data'];
+% Create the global attributes for an OceanSITES format netCDF file
+
+%% Set some conversion info
+osite_dfmt = 'yyyy-mm-ddTHH:MM:SSZ'; % All dates / times should be in oceansites date/time format
+data_mode = struct('R', 'Real Time ', ...
+                   'P', 'Provisional ', ...
+                   'D', 'Delayed-mode ', ...
+                   'M', 'Mixed ');
+
+%% Define global attributes from Project and Contract
 g.summary = [meta.project_title ' ' meta.project_contract];
-g.naming_authority = 'OceanSITES';
-%g.data_type = 'OceanSITES time-series data';
-g.id = ['OS_' meta.os_platform_code '_', OS_date '_' meta.mode '_' meta.data_type];
-g.name = g.id;
-g.wmo_platform_code = wmo_platform_code;
-g.source = 'Mooring observation';
-if fiedname(meta,'pi_name'),  g.principal_investigator = meta.pi_name; end;
-if fiedname(meta,'pi_email'), g.principal_investigator_email = meta.pi_email; end;
-if fiedname(meta,'pi_url'),   g.principal_investigator_url = meta.pi_url; end;
-g.institution = source_institution;
-if fiedname(meta,'sdn_edmo_code') g.sdn_edmo_code = meta.sdn_edmo_code; end
-if fiedname(meta,'project') g.project = meta.project; end;
-if fiedname(meta,'os_array') g.array = meta.os_array; end;
-if fiedname(meta,'os_network') g.network = meta.os_network; end
-else g.network = 'FixO3' ;
-end
+
+%% Discovery and identification
+g.site_code = meta.os_site_code; % [req] Name of the site within OceanSITES project. The site codes are available on GDAC ftp servers (GDAC)
+g.platform_code = meta.os_platform_code; % [req] The unique platform code, assigned by an OceanSITES project (GDAC)
+g.data_mode = meta.mode; % [req] Indicates if the file contains real-time, provisional or delayed- mode data. The list of valid data modes is in reference table 4 (GDAC)
+g.title = [data_mode.(meta.mode) 'OceanSITES ' meta.os_site_code ' in-situ data']; % Free-format text describing the dataset, for use by human readers. Use the file name if in doubt (NUG)
+g.summary = ['Oceanographic mooring data from ' meta.os_site_code ' observatory in the ' meta.area ...
+             'Measured properties: ' meta.properties ' at ' meta.num_depths ' depth levels']'; % Longer free-format text describing the dataset. This attribute should allow data discovery for a human reader. A paragraph of up to 100 words is appropriate. (ACDD)
+g.naming_authority = 'OceanSITES'; % The organization that manages data set names. (ACDD)
+g.id = ['OS_' meta.os_platform_code '_', OS_date '_' meta.mode '_' meta.data_type]; % The ?id? and ?naming_authority? attributes are intended to provide a globally unique identification for each dataset. The id may be the file name without .nc suffix, which is designed to be unique. (ACDD)
+g.wmo_platform_code = meta.wmo_platform_code; % WMO (World Meteorological Organization) identifier. This platform number is unique within the OceanSITES project.
+g.source = 'subsurface mooring'; % Use a term from the SeaVoX Platform Categories,(L06) list, usually one of the following: ?moored surface buoy?, ?subsurface mooring? (CF)
+if fiedname(meta,'pi_name'),  g.principal_investigator = meta.pi_name; end % Name of the person responsible for the project that produced the data contained in the file.
+if fiedname(meta,'pi_email'), g.principal_investigator_email = meta.pi_email; end % Email address of the project lead for the project that produced the data contained in the file.
+if fiedname(meta,'pi_url'),   g.principal_investigator_url = meta.pi_url; end % URL with information about the project lead
+g.institution = meta.source_institution; % Specifies institution where the original data was produced. (CF)
+if fiedname(meta,'project'), g.project = meta.project;
+else g.network = 'FixO3' ; end % The scientific project that produced the data.
+if fiedname(meta,'os_array'), g.array = meta.os_array; end % A grouping of sites based on a common and identified scientific question, or on a common geographic location.
+if fiedname(meta,'os_network'), g.network = meta.os_network; end % A grouping of sites based on common shore-based logistics or infrastructure.
 if fiedname(meta,'keywords_vocabulary')
-  g.keywords_vocabulary = meta.keywords_vocabulary;
-  g.keywords = meta.keywords;
+  g.keywords_vocabulary = meta.keywords_vocabulary; % Please use one of ?GCMD Science Keywords?, 'SeaDataNet Parameter Discovery Vocabulary' or 'AGU Index Terms'. (ACDD)
+  g.keywords = meta.keywords; % Provide comma-separated list of terms that will aid in discovery of the dataset. (ACDD)
 end;
-g.comment = meta.comment_in;
+if fiedname(meta,'sdn_edmo_code'), g.sdn_edmo_code = meta.sdn_edmo_code; end % [Not in OceanSITES standard attributes]
+g.comment = meta.comment_in; % Miscellaneous information about the data or methods used to produce it. Any free-format text is appropriate. (CF)
 
+%% Geo-spatial-temporal
+if fiedname(meta,'data_area'), g.area = meta.data_area;
+else g.network = 'North Atlantic Ocean' ; end % Geographical coverage. Try to compose of the following: North/Tropical/South Atlantic/Pacific/Indian Ocean, Southern Ocean, Arctic Ocean. 
+g.geospatial_lat_min = num2str(meta.lat_min); % [req] The southernmost latitude, a value between -90 and 90 degrees; may be string or numeric. (ACDD, GDAC) 
+g.geospatial_lat_max = num2str(meta.lat_max); % [req] The northernmost latitude, a value between -90 and 90 degrees. (ACDD, GDAC) 
+g.geospatial_lat_units = 'degree_north'; % Must conform to udunits. If not specified then ?degree_north? is assumed. (ACDD) 
+g.geospatial_lon_min = num2str(meta.lon_min); % [req] The westernmost longitude, a value between -180 and 180 degrees. (ACDD, GDAC)
+g.geospatial_lon_max = num2str(meta.lon_max); % [req] The easternmost longitude, a value between -180 and 180 degrees. (ACDD, GDAC)
+g.geospatial_lon_units = 'degree_east'; % Must conform to udunits, If not specified then ?degree_east? is assumed. (ACDD)
+g.geospatial_vertical_min = num2str(meta.d_min); % [req] Minimum depth or height of measurements. (ACDD, GDAC)
+g.geospatial_vertical_max = num2str(meta.d_max); % [req] Maximum depth or height of measurements. (ACDD, GDAC)
+g.geospatial_vertical_positive = 'down'; % Indicates which direction is positive; "up" means that z represents height, while a value of "down" means that z represents pressure or depth. If not specified then ?down? is assumed. (ACDD)
+g.geospatial_vertical_units = 'meter'; % Units of depth, pressure, or height. If not specified then ?meter? is assumed. (ACDD)
+g.time_coverage_start = datestr(meta.sdate,osite_dfmt); % [req] Start date of the data in UTC. See note on time format below. (ACDD, GDAC)
+g.time_coverage_end = datestr(meta.edate,osite_dfmt); % [req] Final date of the data in UTC. See note on time format below. (ACDD, GDAC)
+if isfield(meta,'time_coverage_duration'), g.time_coverage_duration = meta.time_coverage_duration;
+else g.time_coverage_duration = ['P' num2str(floor(edate-sdate)) 'D']; end % Use ISO 8601 (examples: P1Y ,P3M, P10D) (ACDD)
+if isfield(meta,'time_coverage_resolution'), g.time_coverage_resolution = 'time_coverage_resolution'; 
+else g.time_coverage_resolution = ['PT' num2str((edate-sdate)*(24*60)) 'M']; end % Interval between records: Use ISO 8601 (PnYnMnDTnHnMnS) e.g. PT5M for 5 minutes, PT1H for hourly, PT30S for 30 seconds. (ACDD)
+g.cdm_data_type = 'station'; % [req] The Unidata CDM (common data model) data type used by THREDDS. e.g. point, profile, section, station, station_profile, trajectory, grid, radial, swath, image; use Station for OceanSITES mooring data. (ACDD)
+if isfield(meta,'featureType'), g.featureType = meta.featureType;
+else g.featureType = 'timeSeries'; end % Optional, and only for files using the Discrete Sampling Geometry, available in CF-1.5 and later. See CF documents. (CF)
+g.data_type = 'OceanSITES time-series data'; % From Reference table 1: OceanSITES specific. (GDAC)
 
-%%%%%%%%%%%%%WHERE
-if exist('data_area')<1 g.area = 'North Atlantic Ocean'; 
-else                    g.area = data_area;
-end
-g.geospatial_lat_min = num2str(moor_lat_min);
-g.geospatial_lat_max = num2str(moor_lat_max);
-g.geospatial_lat_units = 'degree_north';
-g.geospatial_lon_min = num2str(moor_long_min);
-g.geospatial_lon_max = num2str(moor_long_max);
-g.geospatial_lon_units = 'degree_east';
-g.geospatial_vertical_min = num2str(v(1));
-g.geospatial_vertical_max = num2str(v(nvar));
-g.geospatial_vertical_positive = 'down';
-g.geospatial_vertical_units = 'meter';
-g.time_coverage_start = [datestr(DateTime(1,1),29) 'T' datestr(DateTime(1,1),13) 'Z'];
-g.time_coverage_end = [datestr(DateTime(end,1),29) 'T' datestr(DateTime(end,1),13) 'Z'];
-if exist('time_coverage_duration')
-   g.time_coverage_duration = 'time_coverage_duration'; 
+%% Conventions used 
+g.format_version = meta.os_format_version; % [req] OceanSITES format version; may be 1.1, 1.2, 1.3. (GDAC)
+g.Conventions = meta.os_conventions; % Name of the conventions followed by the dataset. (NUG)
+if (meta.ncVerNo > 3), g.netcdf_version = '4.0'; % netCDF version 4.0 if specified > 3
+else g.netcdf_version = '3.5'; % if not specified, or not set >3, default to 3.5
+end % NetCDF version used for the data set
+
+%% Publication information 
+if isfield(meta,'publisher_name'), g.publisher_name = publisher_name;
+else g.publisher_name = meta.author; end; % Name of the person responsible for metadata and formatting of the data file. (ACDD) 
+if isfield(meta,'publisher_email'), g.publisher_email = publisher_email;
+else g.publisher_email = meta.contacts_email; end; % Email address of person responsible for metadata and formatting of the data file. (ACDD) 
+if isfield(meta,'publisher_url'), g.publisher_url = publisher_url;
+else g.publisher_url = meta.author_url; end; % Web address of the institution or of the data publisher. (ACDD) 
+g.references = meta.references; % Published or web-based references that describe the data or methods used to produce it. Include a reference to OceanSITES and a project-specific reference if appropriate. 
+g.institution_references = meta.institution_references; % [Not in OceanSITES standard attributes]
+g.data_assembly_center = meta.data_assembly_center; % Data Assembly Center (DAC) in charge of this data file. The data_assembly_center are listed in reference table 5. 
+g.update_interval = meta.update_interval; % [req] Update interval for the file, in ISO 8601 Interval format: PnYnMnDTnHnM, where elements that are 0 may be omitted. Use ?void? for data that are not updated on a schedule. Used by inventory software. (GDAC) 
+if isfield(meta,'useLicense')
+  g.license = meta.useLicense;
 else
-   day_dur=floor(DateTime(end,1)-DateTime(1,1);
-   g.time_coverage_duration = ['P' num2str(day_dur) 'D']; 
-end;
-if exist('time_coverage_resolution')
-   g.time_coverage_resolution = 'time_coverage_resolution'; 
+  g.license = ['Follows CLIVAR (Climate Varibility and Predictability) standards, cf. http://www.clivar.org/data/data_policy.php. Data available free of charge. User assumes all risk for use of data. User must display citation in any publication or product using data. User must contact PI prior to any commercial use of data.'];
+end % A statement describing the data distribution policy; it may be a project- or DAC-specific statement, but must allow free use of data. OceanSITES has adopted the CLIVAR data policy, which explicitly calls for free and unrestricted data exchange. Details at: http://www.clivar.org/data/data_policy.php (ACDD) 
+if isfield(meta,'citation')
+  g.citation = meta.citation;
 else
-   time_res=(DateTime(2,1)-DateTime(1,1))*(24*60);
-   g.time_coverage_resolution = ['PT' num2str(time_res) 'M']; 
-end;
+  g.citation = ['These data were collected and made freely available by the EuroSITES and OceanSITES project and the national programs that contribute to it.'];
+end % The citation to be used in publications using the dataset; should include a reference to OceanSITES but may contain any other text deemed appropriate by the PI and DAC.. 
+if isfield(meta,'acknowledgement'), g.acknowledgement = metaacknowledgement;
+elseif isfield(meta,'citation'), g.acknowledgement = meta.citation;
+end; % A place to acknowledge various types of support for the project that produced this data. (ACDD) 
 
-netcdf.putAtt(scope,NC_GLOBAL,'cdm_data_type = 'Station';
-
-if exist('featureType')<1
-	g.featureType = 'timeSeries';
-else
-	g.featureType = featureType;
-end
-
-g.data_type = 'OceanSITES time-series data';
-
-%%%%%%%%%%conventions
-g.format_version = os_format_version;
-g.Conventions = os_conventions;
-g.netcdf_version = netcdf_version;
-
-%%%%%%%%%%%publication info
-
-if exist('publisher_name')
-  g.publisher_name = publisher_name;
-else
-  g.publisher_name = author;
-end;
-if exist('publisher_email')
-  g.publisher_email = publisher_email;
-else
-  g.publisher_email = contacts_email;
-end;
-if exist('publisher_url')
-  g.publisher_url = publisher_url;
-else
-  g.publisher_url = author;
-end;
-
-g.references = references;
-g.institution_references = institution_references;
-g.data_assembly_center = data_assembly_center;
-g.update_interval = update_interval;
-
-if ~exist('useLicense') 
- useLicense=['Follows CLIVAR (Climate Varibility and Predictability) standards, cf. http://www.clivar.org/data/data_policy.php. Data available free of charge. User assumes all risk for use of data. User must display citation in any publication or product using data. User must contact PI prior to any commercial use of data.'];
-end;
-g.license = useLicense;
-    
-if ~exist('citation') 
- citation=['These data were collected and made freely available by the EuroSITES and OceanSITES project and the national programs that contribute to it.'];
-end;
-g.citation = citation;
-
-if ~exist('acknowledgement') 
- if exist('citation') 
- 	acknowledgement=citation;
- else
- 	acknowledgement='';
-end;
-end;
-g.acknowledgement = acknowledgement;
-
-
-%%%%%%%%%%%%%provenance
-date_created=[datestr(now,29) 'T' datestr(now,13) 'Z'];
-g.date_created = date_created;
-if exist('date_modified') 
- g.date_modified = date_modified;
-else
- g.date_modified = date_created;
-end
-g.history = history_in;
-if exist('processing_level')
- g.processing_level = processing_level;
+%% Provenance
+g.date_created = datestr(now,osite_dfmt); % The date on which the data file was created. Version date and time for the data contained in the file. (UTC). See note on time format below. (ACDD) 
+if isfield(meta,'date_modified'), g.date_modified = meta.date_modified;
+else g.date_modified = g.date_created; end % The date on which [data in] this file was last modified. (ACDD) 
+g.history = meta.history_in; % Provides an audit trail for modifications to the original data. It should contain a separate line for each modification, with each line beginning with a timestamp, and including user name, modification name, and modification arguments. The time stamp should follow the format outlined in the note on time formats below. (NUG) 
+if isfield(meta,'processing_level')
+ g.processing_level = meta.processing_level;
 end;	
-if exist('global_qcProcLevel')
- g.processing_level = global_qcProcLevel{:};
-end;	
-if exist('quality_control_indicator')
- g.QC_indicator = quality_control_indicator;
-else
- g.QC_indicator = 'unknown';
-end;	
+if isfield(meta,'global_qcProcLevel')
+ g.processing_level = meta.global_qcProcLevel{:};
+end; % Level of processing and quality control applied to data. Preferred values are listed in reference table 3. 
+if isfield(meta,'quality_control_indicator'), g.QC_indicator = meta.quality_control_indicator;
+else g.QC_indicator = 'unknown'; end  % A value valid for the whole dataset, one of: 'unknown' - no QC done, no known problems 'excellent' - no known problems, some QC done 'probably good' - validation phase, 'mixed' - some problems, see variable attributes 
+if isfield(meta,'contributor_name'), g.contributor_name = meta.contributor_name;
+else g.contributor_name = meta.institution_references; end % A semi-colon-separated list of the names of any individuals or institutions that contributed to the creation of this data. (ACDD) 
+if isfield(meta,'contributor_role'), g.contributor_role = meta.contributor_role;
+end % The roles of any individuals or institutions that contributed to the creation of this data, separated by semi-colons.(ACDD) 
+if isfield(meta,'contributor_email'), g.contributor_name = meta.contributor_email;
+end % The email addresses of any individuals or institutions that contributed to the creation of this data, separated by semi- colons. (ACDD) 
 
-if exist('contributor_name')
- g.contributor_name = [contributor_name];
-else
- g.contributor_name = [institution_references];
-end
-if exist('contributor_role')
- g.contributor_role = [contributor_role];
-end
-if exist('contributor_email')
- g.contributor_name = [contributor_email];
+%% Define Dimensions
+d = struct('TIME',meta.nrecs, ... % TIME is always first dimension
+           'DEPTH', meta.num_depths, ... % DEPTH always second dimension
+           'LAT', 1, 'LON', 1); % LAT and LON are singleton dimensions
+
+%% Define Variables
+varStruct = struct('xType', [], 'dimids', [], 'Atts', []); % Empty variable definition structure
+% We always have TIME, DEPTH, LAT and LON
+v = struct('time', varStruct,'depth', varStruct,'lat', varStruct,'lon', varStruct);
+v.time.xType = 'NC_DOUBLE';
+v.time.dimids = 1;
+v.time.Atts = struct(...
+      'long_name', 'Date and Time',...
+      'standard_name', 'time',...
+      'description', 'Date and Time from Matlab',...
+      'epic_code', int16(601),...
+      'units', 'seconds since 1970-01-01 00:00:00',...
+      'FillValue', netcdf.getConstant('NC_FILL_DOUBLE'),... % maybe ncfloat(999999)
+      'coordinates','lon lat',...
+      'axis', 't', ...
+      'comments','' ...
+      );
+v.depth.xType = 'NC_FLOAT';
+v.depth.dimids = 2;
+v.depth.Atts = struct(...
+      'long_name', 'Depth of each measurement', ...
+      'standard_name', 'depth', ...
+      'units', 'meter', ...
+      'positive', 'down', ...
+      'FillValue', netcdf.getConstant('NC_FILL_FLOAT'),... % ncfloat(99999)
+      'valid_min', single(0), ...
+      'valid_max', single(12000), ...
+      'coordinates', 'lon lat',...
+      'axis','z', ...
+      'comments','' ...
+      );
+v.lat.xType = 'NC_FLOAT';
+v.lat.dimids = 3;
+v.lat.Atts = struct(...
+      'long_name', 'latitude of each location', ...
+      'standard_name', 'latitude', ...
+      'epic_code',  int16(500), ...
+      'units', 'degree_north', ...
+      'FillValue', netcdf.getConstant('NC_FILL_FLOAT'),... % ncfloat(99999), ...
+      'valid_min', single(-90), ...
+      'valid_max', single(90), ...
+      'comments','' ...
+      );
+v.lon.xType = 'NC_FLOAT';
+v.lon.dimids = 4;
+v.lon.Atts = struct(...
+      'long_name', 'longitude of each location', ...
+      'standard_name', 'longitude', ...
+      'epic_code',  int16(501), ...
+      'units',  'degree_west', ...
+      'FillValue', netcdf.getConstant('NC_FILL_FLOAT'),... % ncfloat(99999), ...
+      'valid_min', single(-180), ...
+      'valid_max', single(180), ...
+      'comments','' ...
+      );
+
+switch meta.data_type
+  case 'CTD' % microcats
+    v1 = def_pap_microcat(meta);
+  otherwise
+    disp(['Unknown DataType ' meta.data_type '- no variables defined']);
+    v1 = [];
 end
 
-
-% 1.3 only by parameter/variable
-%g.quality_index = quality_index;
+% Create single output variable definition structure
+flds = fieldnames(v1);
+for i=1:length(flds)
+  v.(flds{i}) = v1.(flds{i});
+end

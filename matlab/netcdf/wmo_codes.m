@@ -1,18 +1,19 @@
-function [wmo, id, pltfm, sc, nw] = wmo_codes(mooring,mooring_no)
-% [wmo_platform_code, os_id, os_platform_code, os_site_code] = wmo_codes(mooring,mooring_no)
+function [sc, pltfm, wmo, nw, id] = wmo_codes(mooring,mooring_no)
+% [os_site_code,os_platform_code,wmo_platform_code,os_network,os_id] = 
+%                    wmo_codes(mooring,mooring_no)
 %
 % Function to return:
-%   wmo_platform_code - WMO platform code
+%   os_site_code - OceanSITES site code (site_code global attribute)
+%   os_platform_code - OceanSITES platform code (platform_code global attribute)
+%   wmo_platform_code - WMO platform code (wmo_platform_code global attribute)
+%   os_network - OceanSITES network (network global attribute)
 %   os_id - OceanSITES id number
-%   os_platform_code - OceanSITES platform code
-%   os_site_code - OceanSITES site code
-%   os_network - OceanSITES network
 % for specified mooring and optional mooring number (character)
 % If mooring_no is ommitted, or empty, it is ignored
 % Recognised moorings are:
-% cis, estoc, e2m3a, pap, station-m, tenatso, dyfamed, antares
-% nog, sog
-% First 3 characters only required - upper of lower case
+%     cis, estoc, e2m3a, pap, station-m, tenatso, dyfamed, antares
+%     nog, sog
+% First 3 characters only required - upper or lower case
 % Data taken from Sites summary file on http://www.oceansites.org/about.html
 
 % Check we have at least a 3 character mooring code input
