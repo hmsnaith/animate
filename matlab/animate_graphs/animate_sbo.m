@@ -65,6 +65,7 @@ for m=1:sbo_nv;
     if (~isempty(qc))
       disp(' potential out of range SBO salinity');
       fprintf('    %s\n',datestr(sbodat(m).Date_Time(qc)));
+      sbodat(m).S(qc)=NaN;
     end
     
     % Calculate SigmaT
