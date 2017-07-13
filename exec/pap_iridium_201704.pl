@@ -18,6 +18,11 @@ use quality_control_v3;
 # Establish link to animate MySQL tables
 $dbh = DBI->connect("DBI:mysql:animate:mysql","animate_admin","an1mate9876") || die "Can't open $database";
 
+# Set server the accept "out of range" values - so NaNs, and incorrectly received data (stupid numbers) set to max of field rather than send error
+$sql="SET sql_mode = ''";
+$sel = $dbh->prepare($sql);
+$sel->execute() || die "SQL mode setting: $sql failed";
+
 # Depths of sbe now read from file
 #@Depths_sbe=('30','31');
 #@sbe_depth{9999}=$Depths_sbe[0];
@@ -51,6 +56,17 @@ $mailprog='/usr/lib/sendmail';
 $from_address="Iridium_System\@noc.soton.ac.uk";
 #$to_address="bodcnocs\@bodc.ac.uk,joc\@campbelloceandata.com";
 $to_address="bodcnocs\@bodc.ac.uk";
+
+# Save current date, time, year, month and day & print month
+$nowunix = time();
+@now=gmtime(time);
+$nowdate=sprintf("%04d-%02d-%02d %02d:%02d:%02d", @now[5]+1900,@now[4]+1,@now[3],@now[2],@now[1],@now[0]);
+$nowyyyy=@now[5]+1900;
+$nowmon = @now[4] + 1;
+$nowddd=sprintf("%03u",@now[7]+1);
+print("\n---------------------------\n");
+print("Running pap_iridium_201704.pl on $nowdate\n");
+print "   MONTH  $nowmon $now\n";
 
 # Open last read event file on stream 'DATE'
 print("Reading last access file $last_access_file\n");
@@ -119,13 +135,13 @@ if ($vtype == "fet") {
 close(DATE);
 
 # Save current date, time, year, month and day & print month
-$nowunix = time();
-@now=gmtime(time);
-$nowdate=sprintf("%04d-%02d-%02d %02d:%02d:%02d", @now[5]+1900,@now[4]+1,@now[3],@now[2],@now[1],@now[0]);
-$nowyyyy=@now[5]+1900;
-$nowmon = @now[4] + 1;
-print "MONTH  $nowmon $now\n";
-$nowddd=sprintf("%03u",@now[7]+1);
+#$nowunix = time();
+#@now=gmtime(time);
+#$nowdate=sprintf("%04d-%02d-%02d %02d:%02d:%02d", @now[5]+1900,@now[4]+1,@now[3],@now[2],@now[1],@now[0]);
+#$nowyyyy=@now[5]+1900;
+#$nowmon = @now[4] + 1;
+#print "MONTH  $nowmon $now\n";
+#$nowddd=sprintf("%03u",@now[7]+1);
 
 # Do one loop / day for daily files
 $no_loops=int( ($nowunix-$last_run) / 86400);
@@ -212,7 +228,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             $sqlsel="SELECT *  FROM ".$mooring."_att WHERE Date_Time = '".$rec_date_time."'";
             #print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
-            $sel->execute() || die "Update $sql failed";
+            $sel->execute() || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -220,7 +236,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             unless (@rowh) {
               $sql="INSERT INTO ".$mooring."_att SET Date_Time='".$rec_date_time."'";
               $ins = $dbh->prepare($sql);
-              $ins->execute()  || die "insert $sql failed";
+              $ins->execute()  || die "insert: $sql failed";
             }
 
             # Update table values
@@ -248,7 +264,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("ATTsql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 ###########################################################
 # Buoy pitch and roll, and accelerometer data
@@ -267,7 +283,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -301,7 +317,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("BTTsql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 ###########################################################
 #ProOceanus CO2-Pro sensor
@@ -321,7 +337,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -345,7 +361,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("co2sql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 ###########################################################
 # FET - Satlantic SeaFET pH sensor
@@ -364,6 +380,9 @@ if (opendir(DIRHANDLE, $file_dir)) {
             $sensor_rec_time=$sensor_basedate + int( ($sensor_time-1)  * 86400);
             ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=gmtime($sensor_rec_time);
             $sensor_rec_date_time=sprintf("%04u-%02u-%02u %02u:%02u:%02u",$year+1900,$mon+1,$mday,$hour,$min,$sec);
+            if ($int_isolated_v == "NaN") { $int_isolated_v = 999.999; }
+            if ($supply_v == "NaN") { $supply_v = 999.999; }
+            if ($therm_v >= 1000) { $therm_v = 9999.999999; }
             # $time_diff=($message_time-$sensor_time)*86400; # 201304 OK in incoming data
 
             #find if serial no is known
@@ -387,7 +406,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -414,7 +433,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("FETsql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
           elsif ($ext eq "fet") {
             print("Not processing merged fet file\n");
@@ -462,7 +481,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -493,7 +512,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("FETsql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 ###########################################################
 #Pro-Oceanus Logging CO2-Pro
@@ -511,7 +530,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
             unless (@rowh) {
@@ -533,7 +552,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("GASsql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 #############################################################
 # Telemetry GPS
@@ -552,7 +571,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -571,7 +590,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("GPS sql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 ##########################################################
 # Pro-Oceanus Gas Tension sensor
@@ -589,7 +608,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -606,7 +625,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("GTDsql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 ############################################
 # hub monitors
@@ -625,7 +644,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -657,7 +676,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("HUBsql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 #############################################################
 # Telemetry Iridium
@@ -676,7 +695,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -697,7 +716,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("IRDsql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 #############################################################
 # Satlantic OCR-507 ICSW irradiance
@@ -715,7 +734,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
               # print("$sqlsel\n");
               $sel = $dbh->prepare($sqlsel);
               $sel->execute();
-              # || die "Update $sql failed";
+              # || die "select: $sqlsel failed";
 
               @rowh=$sel->fetchrow_array();
 
@@ -742,7 +761,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
               # print("$sqlupd\n");
 
               $ins = $dbh->prepare($sqlupd);
-              $ins->execute()|| die "Update $sql failed";
+              $ins->execute()|| die "update: $sqlupd failed";
 
               # $rec_date_time=0;
             #}
@@ -763,7 +782,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
               ## print("$sqlsel\n");
               #$sel = $dbh->prepare($sqlsel);
               #$sel->execute();
-              ## || die "Update $sql failed";
+              ## || die "select: $sqlsel failed";
 #
               #@rowh=$sel->fetchrow_array();
               #unless (@rowh) {
@@ -788,7 +807,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
               ## print("$sqlupd\n");
 #
               #$ins = $dbh->prepare($sqlupd);
-              #$ins->execute()|| die "Update $sql failed";
+              #$ins->execute()|| die "update: $sqlupd failed";
 #
               ## $rec_date_time=0;
             #}
@@ -809,7 +828,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
 #              # print("$sqlsel\n");
 #              $sel = $dbh->prepare($sqlsel);
 #              $sel->execute();
-#              # || die "Update $sql failed";
+#              # || die "select: $sqlsel failed";
 #
 #              @rowh=$sel->fetchrow_array();
 #              unless (@rowh) {
@@ -834,7 +853,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
 #              # print("$sqlupd\n");
 #
 #              $ins = $dbh->prepare($sqlupd);
-#              $ins->execute()|| die "Update $sql failed";
+#              $ins->execute()|| die "update: $sqlupd failed";
 #
           #    # $rec_date_time=0;
           #  }
@@ -864,7 +883,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -886,7 +905,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("PH1sql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 ###########################################################
 # WETLabs Cycle Phosphate sensor
@@ -914,7 +933,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
               # print("$sqlsel\n");
               $sel = $dbh->prepare($sqlsel);
               $sel->execute();
-              # || die "Update $sql failed";
+              # || die "select: $sqlsel failed";
 
               @rowh=$sel->fetchrow_array();
 
@@ -941,7 +960,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
               $sqlupd.=" where Date_Time = '".$sensor_rec_date_time."'";
               # print ("PO4sql $sqlupd \n");
               $ins = $dbh->prepare($sqlupd);
-              $ins->execute()|| die "Update $sql failed";
+              $ins->execute()|| die "update: $sqlupd failed";
             }
           }
 ######################################################################
@@ -961,7 +980,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -982,7 +1001,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("PWR sql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 ##########################################################################
 # SeaBird SBE-37IMP-ODO MicroCAT
@@ -1035,7 +1054,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
 #               # print("$sqlsel\n");
 #               $sel = $dbh->prepare($sqlsel);
 #               $sel->execute();
-#               # || die "Update $sql failed";
+#               # || die "select: $sqlsel failed";
 #
 #               @rowh=$sel->fetchrow_array();
 #
@@ -1056,7 +1075,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
 #               #print ("SBE sql $sqlupd \n");
 #
 #               $ins = $dbh->prepare($sqlupd);
-#               $ins->execute()|| die "Update $sqlupd failed";
+#               $ins->execute()|| die "update: $sqlupd failed";
 #             }
             print("Not using .sbe file for this deployment\n");
           }
@@ -1115,7 +1134,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
               # print("$sqlsel\n");
               $sel = $dbh->prepare($sqlsel);
               $sel->execute();
-              # || die "Update $sql failed";
+              # || die "select: $sqlsel failed";
 
               @rowh=$sel->fetchrow_array();
 
@@ -1141,7 +1160,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
               #print ("SBO sql $sqlupd \n");
 
               $ins = $dbh->prepare($sqlupd);
-              $ins->execute()|| die "Update $sqlupd failed";
+              $ins->execute()|| die "update: $sqlupd failed";
             }
           }
           elsif ($ext eq "sbo") {
@@ -1180,7 +1199,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -1224,7 +1243,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlupd\n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
             # $rec_date_time=0;
             # $sensor_rec_date_time=0;
             # $time_diff=99999;
@@ -1261,7 +1280,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -1308,7 +1327,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlupd\n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
             # $rec_date_time=0;
             # $sensor_rec_date_time=0;
             # $time_diff=99999;
@@ -1330,7 +1349,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -1355,7 +1374,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             $sqlupd.=" where Date_Time = '".$rec_date_time."'";
             # print ("ST1sql $sqlupd \n");
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 #############################################################
 # Satlantic SUNA V2
@@ -1381,7 +1400,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -1402,7 +1421,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             $sqlupd.=" where Date_Time = '".$sensor_rec_date_time."'";
             # print ("SUNsql $sqlupd \n");
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 #########################################################
 # WETLabs FLNTUSB Fluorometer
@@ -1433,7 +1452,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -1456,7 +1475,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlupd\n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 #########################################################
 # From here - not expecting in this deployment
@@ -1477,7 +1496,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -1501,7 +1520,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("CMPsql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 #########################################################
 # buoy pitch and roll data
@@ -1520,7 +1539,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -1544,7 +1563,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("EZ3sql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 #########################################################
           elsif ($ext eq "iss") {
@@ -1569,7 +1588,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -1592,7 +1611,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("MONsql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 #########################################################
 # engineering data
@@ -1611,7 +1630,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -1636,7 +1655,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print ("MONsql $sqlupd \n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
           }
 #########################################################
           elsif ($ext eq "nas") {
@@ -1660,7 +1679,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -1681,7 +1700,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlupd\n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
 
             # $rec_date_time=0;
             # $sensor_rec_date_time=0;
@@ -1710,7 +1729,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -1732,7 +1751,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlupd\n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
 
             # $rec_date_time=0;
             # $sensor_rec_date_time=0;
@@ -1759,7 +1778,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlsel\n");
             $sel = $dbh->prepare($sqlsel);
             $sel->execute();
-            # || die "Update $sql failed";
+            # || die "select: $sqlsel failed";
 
             @rowh=$sel->fetchrow_array();
 
@@ -1779,7 +1798,7 @@ if (opendir(DIRHANDLE, $file_dir)) {
             # print("$sqlupd\n");
 
             $ins = $dbh->prepare($sqlupd);
-            $ins->execute()|| die "Update $sql failed";
+            $ins->execute()|| die "update: $sqlupd failed";
 
             # $rec_date_time=0;
             # $sensor_rec_date_time=0;
@@ -1967,7 +1986,7 @@ sub qc_call($) {
 $sqlsel="SELECT * FROM ".$mooring."_data WHERE Date_Time = '$rec_date_time'";
 $sel = $dbh->prepare($sqlsel);
 $sel->execute();
-# || die "Update $sql failed";
+# || die "select: $sqlsel failed";
 
 @rowqc=$sel->fetchrow_array();
 
