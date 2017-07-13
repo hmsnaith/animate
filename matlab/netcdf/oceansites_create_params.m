@@ -84,7 +84,7 @@ end % A statement describing the data distribution policy; it may be a project- 
 if isfield(meta,'citation')
   g.citation = meta.citation;
 else
-  g.citation = ['These data were collected and made freely available by the EuroSITES and OceanSITES project and the national programs that contribute to it.'];
+  g.citation = ['These data were collected and made freely available by the EuroSITES and OceanSITES projects and the national programs that contribute to them.'];
 end % The citation to be used in publications using the dataset; should include a reference to OceanSITES but may contain any other text deemed appropriate by the PI and DAC.. 
 if isfield(meta,'acknowledgement'), g.acknowledgement = meta.acknowledgement;
 elseif isfield(meta,'citation'), g.acknowledgement = meta.citation;

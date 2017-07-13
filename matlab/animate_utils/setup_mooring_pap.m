@@ -105,10 +105,6 @@ switch lower(meta.os_site_code)
 end
 
 %% Deployment specific Info
-meta.license = '';
-meta.citation = '';
-meta.acknowledgement = '';
-
 switch deploy
   case '201704'
     % Deployment
@@ -165,41 +161,47 @@ end % End of deployment switch
 
 %% Update Project specific information
 ack_fmt = ...
-  ['When you use %s data in publications please acknowledge the %s Project (%s).;' ...
-  'Also, we would appreciate receiving a preprint and/or reprint of publications utilizing these data for inclusion in the %s bibliography.;' ...
-  'These publications should be sent to: %s Data Manager - BODC Data Management,;' ...
-  'National Oceanography Centre, Southampton, SO14 3ZH, UK (email bodcnocs@bodc.ac.uk)'];
-
+  ['When you use %s data in publications please acknowledge the %s Project (%s).' ...
+  ' Also, we would appreciate receiving a preprint and/or reprint of publications utilizing these data for inclusion in the %s bibliography.' ...
+  ' Publications should be sent to: %s Data Manager - BODC Data Management,' ...
+  ' National Oceanography Centre, Southampton, SO14 3ZH, UK (email bodcnocs@bodc.ac.uk)'];
+cit_fmt = ...
+  ['These data were collected and made freely available by the %s Project (%s)' ...
+    ' and the national programs that contribute to it'];
 switch meta.project
   case 'ANIMATE'
     meta.project_title = 'ANIMATE Atlantic Network of Interdisciplinary Moorings and Time-series for Europe.';
     meta.project_contract = 'EU FP5 contract EVR1-CT-2001-40014.';
     meta.acknowledgement = ...
       sprintf(ack_fmt,meta.project, meta.project, meta.project_contract, meta.project, meta.project);
+    meta.citation = sprintf(cit_fmt,meta.project, meta.project_contract);
   case 'MERSEA'
     meta.project_title = 'MERSEA Marine EnviRonment and Security for the European Area - Integrated Project. WP3 In Situ Ocean Observing Systems.';
     meta.project_contract = 'EU FP6 contract AIP3-CT-2003-502885'; % see also citation
     meta.acknowledgement = ...
       sprintf(ack_fmt,meta.project, meta.project, meta.project_contract, 'ANIMATE/MERSEA', 'ANIMATE/MERSEA');
+    meta.citation = sprintf(cit_fmt,meta.project, meta.project_contract);
   case 'EuroSITES'
     meta.project_title = 'EuroSITES European Ocean Observatory Network';
     meta.project_contract = 'EU FP7 collaborative project contract FP7-ENV-2007-1-202955'; % see also citation
     meta.acknowledgement = ...
       sprintf(ack_fmt,meta.project, meta.project, meta.project_contract, meta.project, meta.project);
+    meta.citation = sprintf(cit_fmt,meta.project, meta.project_contract);
   case 'FixO3'
     meta.project_title = 'FixO3: Fixed-point Open Ocean Observatories';
     meta.project_contract = 'EU FP7 project (FP7/2007-2013) under grant agreement No 312463'; % see also citation
     meta.acknowledgement = ...
       sprintf(ack_fmt,meta.project, meta.project, meta.project_contract, meta.project, meta.project);
+    meta.citation = sprintf(cit_fmt,meta.project, meta.project_contract);
     meta.os_network = 'FixO3';
     meta.data_assembly_center = 'FixO3 DAC';
     meta.publisher_url = 'http://www.fixo3.eu';
     meta.references='http://www.fixo3.eu, http://www.oceansites.org, http://www.coriolis.eu.org, http://www.eurosites.info';
   otherwise
-    meta.acknowledgement = ['When you use these data in publications please acknowledge the NOC.;' ...
-      'Also, we would appreciate receiving a preprint and/or reprint of publications utilizing these data.;' ...
-      'These publications should be sent to: BODC Data Management,;' ...
-      'National Oceanography Centre, Southampton, SO14 3ZH, UK (email bodcnocs@bodc.ac.uk)'];
+    meta.acknowledgement = ['When you use these data in publications please acknowledge the NOC.' ...
+      ' Also, we would appreciate receiving a preprint and/or reprint of publications utilizing these data.' ...
+      ' Publications should be sent to: BODC Data Management,' ...
+      ' National Oceanography Centre, Southampton, SO14 3ZH, UK (email bodcnocs@bodc.ac.uk)'];
+    meta.citation = sprintf(cit_fmt, meta.project, meta.project_contract);
 end
-%meta.acknowledgement = char(strsplit(meta.acknowledgement,';'));
 
