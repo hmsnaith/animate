@@ -8,16 +8,14 @@ data_mode = struct('R', 'Real Time ', ...
                    'P', 'Provisional ', ...
                    'D', 'Delayed-mode ', ...
                    'M', 'Mixed ');
-
-%% Define global attributes from Project and Contract
-g.summary = [meta.project_title ' ' meta.project_contract];
-
-%% Discovery and identification
+%% Discovery and identification - common to all data types
 g.site_code = meta.os_site_code; % [req] Name of the site within OceanSITES project. The site codes are available on GDAC ftp servers (GDAC)
 g.platform_code = meta.os_platform_code; % [req] The unique platform code, assigned by an OceanSITES project (GDAC)
 g.data_mode = meta.mode; % [req] Indicates if the file contains real-time, provisional or delayed- mode data. The list of valid data modes is in reference table 4 (GDAC)
 g.title = [data_mode.(meta.mode) 'OceanSITES ' meta.os_site_code ' in-situ data']; % Free-format text describing the dataset, for use by human readers. Use the file name if in doubt (NUG)
-g.summary = ['Oceanographic mooring data from ' meta.os_site_code ' observatory in the ' meta.data_area]; % Longer free-format text describing the dataset. This attribute should allow data discovery for a human reader. A paragraph of up to 100 words is appropriate. (ACDD)
+g.summary = ['Oceanographic mooring data from ' meta.os_site_code ' observatory in the ' meta.data_area '.']; % Longer free-format text describing the dataset. This attribute should allow data discovery for a human reader. A paragraph of up to 100 words is appropriate. (ACDD)
+if is_field(meta,'project_title'), g.summary = [g.summary ' Collected under ' meta.project_title '.']; end
+if is_field(meta,'project_contract'), g.summary = [g.summary ' ' meta.project_contract '.']; end
 g.naming_authority = 'OceanSITES'; % The organization that manages data set names. (ACDD)
 g.id = ['OS_' meta.os_platform_code '_', datestr(meta.sdatenum,'yyyymm') '_' meta.mode '_' meta.data_type]; % The ?id? and ?naming_authority? attributes are intended to provide a globally unique identification for each dataset. The id may be the file name without .nc suffix, which is designed to be unique. (ACDD)
 g.wmo_platform_code = meta.wmo_platform_code; % WMO (World Meteorological Organization) identifier. This platform number is unique within the OceanSITES project.
@@ -37,7 +35,7 @@ end;
 if isfield(meta,'sdn_edmo_code'), g.sdn_edmo_code = meta.sdn_edmo_code; end % [Not in OceanSITES standard attributes]
 g.comment = meta.comment_in; % Miscellaneous information about the data or methods used to produce it. Any free-format text is appropriate. (CF)
 
-%% Geo-spatial-temporal
+%% Geo-spatial-temporal - common to all data types
 if isfield(meta,'data_area'), g.area = meta.data_area;
 else g.network = 'North Atlantic Ocean' ; end % Geographical coverage. Try to compose of the following: North/Tropical/South Atlantic/Pacific/Indian Ocean, Southern Ocean, Arctic Ocean. 
 g.geospatial_lat_min = num2str(meta.lat_min); % [req] The southernmost latitude, a value between -90 and 90 degrees; may be string or numeric. (ACDD, GDAC) 
@@ -54,8 +52,7 @@ g.time_coverage_start = datestr(meta.sdatenum,osite_dfmt); % [req] Start date of
 g.time_coverage_end = datestr(meta.edatenum,osite_dfmt); % [req] Final date of the data in UTC. See note on time format below. (ACDD, GDAC)
 if isfield(meta,'time_coverage_duration'), g.time_coverage_duration = meta.time_coverage_duration;
 else g.time_coverage_duration = ['P' num2str(floor(meta.edatenum-meta.sdatenum)) 'D']; end % Use ISO 8601 (examples: P1Y ,P3M, P10D) (ACDD)
-if isfield(meta,'time_coverage_resolution'), g.time_coverage_resolution = 'time_coverage_resolution'; 
-else g.time_coverage_resolution = ['PT' num2str((meta.edatenum-meta.sdatenum)*(24*60)) 'M']; end % Interval between records: Use ISO 8601 (PnYnMnDTnHnMnS) e.g. PT5M for 5 minutes, PT1H for hourly, PT30S for 30 seconds. (ACDD)
+if isfield(meta,'time_coverage_resolution'), g.time_coverage_resolution = 'time_coverage_resolution'; end % Interval between records: Use ISO 8601 (PnYnMnDTnHnMnS) e.g. PT5M for 5 minutes, PT1H for hourly, PT30S for 30 seconds. (ACDD)
 g.cdm_data_type = 'station'; % [req] The Unidata CDM (common data model) data type used by THREDDS. e.g. point, profile, section, station, station_profile, trajectory, grid, radial, swath, image; use Station for OceanSITES mooring data. (ACDD)
 if isfield(meta,'featureType'), g.featureType = meta.featureType;
 else g.featureType = 'timeSeries'; end % Optional, and only for files using the Discrete Sampling Geometry, available in CF-1.5 and later. See CF documents. (CF)
@@ -93,7 +90,7 @@ if isfield(meta,'acknowledgement'), g.acknowledgement = meta.acknowledgement;
 elseif isfield(meta,'citation'), g.acknowledgement = meta.citation;
 end; % A place to acknowledge various types of support for the project that produced this data. (ACDD) 
 
-%% Provenance
+%% Provenance - common to all data types
 g.date_created = datestr(now,osite_dfmt); % The date on which the data file was created. Version date and time for the data contained in the file. (UTC). See note on time format below. (ACDD) 
 if isfield(meta,'date_modified'), g.date_modified = meta.date_modified;
 else g.date_modified = g.date_created; end % The date on which [data in] this file was last modified. (ACDD) 
@@ -118,7 +115,7 @@ d = struct('TIME',meta.nrecs, ... % TIME is always first dimension
            'DEPTH', meta.num_depths, ... % DEPTH always second dimension
            'LAT', 1, 'LON', 1); % LAT and LON are singleton dimensions
 
-%% Define Variables
+%% Define Variables included for all data types
 varStruct = struct('xType', [], 'dimids', [], 'Atts', []); % Empty variable definition structure
 % We always have TIME, DEPTH, LAT and LON
 v = struct('time', varStruct,'depth', varStruct,'lat', varStruct,'lon', varStruct);
@@ -173,19 +170,24 @@ v.lon.Atts = struct(...
       'valid_max', single(180), ...
       'comments','' ...
       );
-
+%% Set parameters specific to data type
 switch meta.data_type
-  case 'CTD' % microcats
+  case {'CTD','CTDO'} % microcats
     [v1, meta] = def_pap_microcat(meta);
-    g.summary = ['Oceanographic mooring data from ' meta.os_site_code ' observatory in the ' meta.data_area ...
-             'Measured properties: ' meta.properties ' at ' meta.num_depths ' depth levels']';
-    g.keywords = meta.keywords;
   otherwise
     disp(['Unknown DataType ' meta.data_type '- no variables defined']);
     v1 = [];
+    meta.nrecs=0;
 end
+% Update / create new global attributes with data specific metadata
+if isfield(meta,'properties'), g.summary = [g.summary ' Measured properties: ' meta.properties]; end
+if isfield(meta,'dep_str'), g.summary = [g.summary ' at ' meta.dep_str ' depth levels']; end
+if isfield(meta,'keywords'), g.keywords = meta.keywords; end
+if isfield(meta,'time_coverage_resolution'), g.time_coverage_resolution = meta.time_coverage_resolution;
+elseif meta.nrecs>0, g.time_coverage_resolution = ['PT' num2str(floor((meta.edatenum-meta.sdatenum)*24*60)/meta.nrecs) 'M']; end
 
-% Create single output variable definition structure
+% Create single output variable definition structure from common and data
+% type specific variable definitions
 flds = fieldnames(v1);
 for i=1:length(flds)
   v.(flds{i}) = v1.(flds{i});

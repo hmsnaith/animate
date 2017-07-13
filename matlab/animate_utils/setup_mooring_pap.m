@@ -83,7 +83,7 @@ switch lower(meta.os_site_code)
     meta.lon_max = -16.;
     meta.lat_min = 48.;
     meta.lat_max = 50.;
-    meta.d_min = 0;
+    meta.d_min = 1;
     meta.d_max = 30.;
   otherwise
     error(['Sorry - unable to setup mooring ' mooring ' (yet)']);
@@ -201,5 +201,5 @@ switch meta.project
       'These publications should be sent to: BODC Data Management,;' ...
       'National Oceanography Centre, Southampton, SO14 3ZH, UK (email bodcnocs@bodc.ac.uk)'];
 end
-meta.acknowledgement = char(strsplit(meta.acknowledgement,';'));
+%meta.acknowledgement = char(strsplit(meta.acknowledgement,';'));
 

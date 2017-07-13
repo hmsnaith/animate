@@ -39,7 +39,7 @@ for m=1:meta.sbo_nv;
   [DATA, sbodat(m).n] = mysql_animate(db_tab,flds,start_date,end_date,s_str);
   if (sbodat(m).n > 0)
     have_data(m) = 1;
-    % transfer data into data structure
+    % transfer data into sbodat structure
     sbodat(m).Date_Time = DATA.Date_Time;
     last_date = max(last_date,sbodat(m).Date_Time(end));
 %     for fld={'temp','cond','press','ox'}
@@ -61,8 +61,9 @@ for m=1:meta.sbo_nv;
             if isempty(tmp(i)) || tmp(i)==0, qc(i) = 0; end
           end
         end
-        % Any flagged bad values - set to NaN
+        % Any flagged bad values - set corresponding value to NaN
         sbodat(m).(char(fld))(qc>0) = NaN;
+        % Save qc data to sbodat structure
         sbodat(m).([char(fld) '_qc']) = qc;
       else
         sbodat(m).([char(fld) '_qc']) = int16(zeros(1,sbodat(m).n));
@@ -106,38 +107,40 @@ for m=1:meta.sbo_nv;
   end % end of 'if sbodat(m).n>0'
 end
 %% Transfer sbodat to var
-% Set number of valid data streams (num_depths)
+% Set number of valid data streams (num_depths) for netcdf output
 meta.num_depths = sum(have_data);
 % set depth / serial number of missing streams to NaN for later
 meta.sbo(have_data==0,:) = NaN;
 
-% Find a single time array
+% Find a single time array for all streams
 tmin = NaN(1,meta.num_depths); tmax = tmin; toff = tmin;
+% Find the time range for each data stream, starting after deployment start
 i = 0;
 for m=find(have_data==1)
   i = i + 1;
   tmin(i) = min(tmin(i),min(sbodat(m).Date_Time(sbodat(m).Date_Time>meta.sdatenum)));
   tmax(i) = max([tmax(i),sbodat(m).Date_Time']);
 end
-tstep = 30./24/60; % half hour timestep
-t = min(tmin):tstep:max(tmax);
-meta.nrecs = length(t);
+tstep = 30./24/60; % set a half hour timestep
+t = min(tmin):tstep:max(tmax); % set time series every half hour from first time
+meta.nrecs = length(t); % Find length of time series
 
 % Find offset of each time stream from min
 for i=1:length(tmin)
-  toff(i) = tmin(i) - t(1);
-  while toff(i) > tstep * .5;
-    toff(i) = toff(i) - tstep;
+  toff(i) = tmin(i) - t(1); % Offset of the time stream from earliest record
+  while toff(i) > tstep * .5; % If it's > 15 mins
+    toff(i) = toff(i) - tstep; % step back to account for missing record
   end
 end
-% correct time variable for mean offset
+% correct time series for mean offset (times will be at mean of reported times)
 toff_mn = mean(toff,'omitnan');
 t = t + toff_mn;
+% Save time series to var time structure - converted to secs since 1970
 var.time = NaN(meta.nrecs,1);
-var.time(:) = (t-datenum('1970-01-01 00:00:00'))*24*60*60; % time since xxx in seconds
+var.time(:) = (t-datenum('1970-01-01 00:00:00'))*24*60*60; % time since 1/1/1970 in seconds
 
 % Create remaining dimension variables
-var.depth = meta.sbo(have_data==1,2);
+var.depth = meta.sbo(have_data==1,1);
 var.lat = meta.anchor_lat;
 var.lon = meta.anchor_lon;
 

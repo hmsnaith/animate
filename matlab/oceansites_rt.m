@@ -51,7 +51,7 @@ switch ds
     meta.data_type = 'CTD';
     [var,meta] = read_animate_microcat(meta);
 end
-%% Set netCDF parameters
+%% Set netCDF parameters - calls def_(datatype)
 [g, d, v] = oceansites_create_params(meta);
 
 %% Set directories and filenames
@@ -62,7 +62,7 @@ in_dir = ['/noc/users/animate/animate_data/' lower(mooring) '/' deploy '/microca
 ffn = [cdout_mc g.id '.nc'];
 
 %% Create netCDF file
-make_oceansites_netcdf(ffn,g,d,v,var)
+oceansites_make_netcdf(ffn,g,d,v,var)
 
 %% Write data into file
 
