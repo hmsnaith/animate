@@ -8,7 +8,7 @@ meta.dep_str = num2str(meta.sbo(~isnan(meta.sbo(:,1)),1)','%dm ');
 
 %% Set up variable types and standard attributes
 vname = 'TEMP'; v.(vname) = setup_var(vname,'NC_FLOAT',meta.dep_str,[2.0 100.],1);
-vname = 'TEMP_QC'; v.(vname) = setup_var(vname,'NC_SHORT',dep_str,[0 9]);
+vname = 'TEMP_QC'; v.(vname) = setup_var(vname,'NC_SHORT',meta.dep_str,[0 9]);
 
 vname = 'CNDC'; v.(vname) = setup_var(vname,'NC_FLOAT',meta.dep_str,[0 9],1);
 vname = 'CNDC_QC'; v.(vname) = setup_var(vname,'NC_SHORT',meta.dep_str,[0 9]);
