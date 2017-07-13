@@ -1,4 +1,4 @@
-function v = setup_var(vname,xType,dep_str,vm)
+function v = setup_var(vname,xType,dep_str,vm,hasqc)
 %v = setup_var(vname,xType,dep_str[,v-range])
 %  Function to setup structure holding
 % variable settings and attributes for OceanSITES netcdf file
@@ -10,6 +10,7 @@ function v = setup_var(vname,xType,dep_str,vm)
 % dep_str - Description of sensor depths (string)
 %         eg '1m, 30m'
 % v-range - (optional) valid range for variable [min max]
+% hasqc - (optional) true if a matching QC variable exists
 %
 % Output v is a structure having fields:
 %       xType, dimids (always = [1 2 3 4]) and Atts.
@@ -41,11 +42,12 @@ epic_codes = struct('TEMP', int16(20), ...
                     );
 x_types = struct('NC_DOUBLE', 'double', ...
                  'NC_FLOAT', 'single', ...
-                 'NC_INT', 'int32' ...
+                 'NC_INT', 'int32', ...
+                 'NC_SHORT', 'int16' ...
                  );
-switch vname(1:2)
+switch vname(end-1:end)
   case 'QC'
-    long_name = ['Quality Marker for ' long_names.(vname(4:end))];
+    long_name = ['Quality Marker for ' long_names.(vname(1:end-3))];
   otherwise
     long_name = long_names.(vname);
 end
@@ -57,24 +59,28 @@ end
 switch xType
   case {'NC_DOUBLE','NC_FLOAT'}
     missing_value = 9999;
-  case {'NC_INT'}
+  case {'NC_INT','NC_SHORT'}
     missing_value = 9;
   otherwise
     missing_value = 999;
  end
-v.(vname).xType = xType;
-v.(vname).dimids = [1 2 3 4];
-v.(vname).Atts.long_name = long_name;
-if isfield(standard_names,vname), v.(vname).Atts.standard_name = standard_names.(vname); end
-v.(vname).Atts.description = description;
-if isfield(epic_codes,vname), v.(vname).Atts.epic_code = epic_codes.(vname); end
-if isfield(units,vname), v.(vname).Atts.units = units.(vname); end
-v.(vname).Atts.FillValue = netcdf.getConstant(strrep(xType,'NC_','NC_FILL'));
-v.(vname).Atts.missing_value = cast(missing_value,x_types.(xType));
-if exist(vm,'var')
-  v.(vname).Atts.valid_min = cast(vm(1),x_types.(xType));
-  v.(vname).Atts.valid_max = cast(vm(2),x_types.(xType));
+v.xType = xType;
+v.dimids = {'TIME' 'DEPTH' 'LAT' 'LON'};
+v.Atts.long_name = long_name;
+if isfield(standard_names,vname), v.Atts.standard_name = standard_names.(vname); end
+v.Atts.description = description;
+if isfield(epic_codes,vname), v.Atts.epic_code = epic_codes.(vname); end
+if isfield(units,vname), v.Atts.units = units.(vname); end
+v.Atts.FillValue = netcdf.getConstant(strrep(xType,'NC_','NC_FILL_'));
+v.Atts.missing_value = cast(missing_value,x_types.(xType));
+if exist('vm','var') && ~isempty(vm)
+  v.Atts.valid_min = cast(vm(1),x_types.(xType));
+  v.Atts.valid_max = cast(vm(2),x_types.(xType));
 end
+if exist('hasqc','var') && hasqc
+    v.Atts.ancillary_variables = [vname '_QC'];
+end
+    
 
 end
 

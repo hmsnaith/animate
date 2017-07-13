@@ -1,6 +1,6 @@
 function make_oceansites_netcdf(ffn,g,d,v,dat)
 % make_oceansites_netcdf(ffn,g,d,v,dat)
-Create OceanSITES netCDF file
+% Create OceanSITES netCDF file
 %
 % ffn: Filename - including path
 % g: Structure array of Global Attributes.
@@ -60,7 +60,9 @@ end
 dimNames = fieldnames(d);
 for i=1:length(dimNames)
   dimName = dimNames{i};
-  netcdf.defDim(scope,dimName,d.(dimName).Size);
+  netcdf.defDim(scope,dimName,d.(dimName));
+  % Ideally save dimIds here
+  dimids.(dimName) = netcdf.inqDimID(scope,dimName);
 end
 
 %% Define Variables and Variable Attributes
@@ -68,7 +70,11 @@ varNames = fieldnames(v);
 for i=1:length(varNames)
   varName = varNames{i};
   varIn = v.(varName);
-  varid = netcdf.defVar(scope,varName,varIn.xType,varIn.dimids);
+  % Convert varIn.dimids (dimension names) to dimension ids
+  ndims = length(varIn.dimids);
+  dims = NaN(1,ndims);
+  for i=1:ndims, dims(i)=dimids.(varIn.dimids{i}); end
+  varid = netcdf.defVar(scope,varName,varIn.xType,dims);
   attNames = fieldnames(varIn.Atts);
   for j=1:length(attNames)
     attName = attNames{j};
@@ -82,7 +88,7 @@ netcdf.endDef(scope);
 %% Write data into variables
 for i=1:length(varNames)
   varName = varNames{i};
-  varid = netcdf.inqVar(scope,varName);
+  varid = netcdf.inqVarID(scope,varName);
   netcdf.putVar(scope,varid,dat.(varName));
 end
 

@@ -10,9 +10,13 @@ function [ffn] = oceansites_rt(mooring,deploy,ds)
 % deployment (input) : specific deployment (eg '4', '201704')
 % data_stream (input) : data stream to include (eg 'microcat', 'cyclops')
 
-if nargsin<3
+if nargin<3
   error('Required input is mooring, deployment and datastream');
 end
+
+addpath('/noc/users/animate/animate/matlab/mysql');
+addpath('/noc/users/animate/animate/matlab/animate_utils');
+addpath('/noc/users/animate/animate/matlab/netcdf');
 
 %% Setup the metadata for this mooring / deployment
 [meta, ~] = setup_mooring_pap(mooring,deploy);
@@ -37,14 +41,15 @@ meta.keywords_vocabulary = 'SeaDataNet Parameter Discovery Vocabulary';
 meta.qc_manual='MERSEA: In-situ real-time data quality control. Mersea-WP03-IFR-UMAN-001-02A, November 2005';
 
 %% Setup variable specific metadata
-switch ds
-  case {'mc','microcat','CTD'}
-  [var, meta] = def_pap_microcat(db_tab,meta);
-end
+% switch ds
+%   case {'mc','microcat','CTD'}
+%   [v, meta] = def_pap_microcat(meta);
+% end
 %% Read in data
 switch ds
   case {'mc','microcat','CTD'}
-    [dat,meta] = read_animate_microcat(db_tab,var);
+    meta.data_type = 'CTD';
+    [var,meta] = read_animate_microcat(meta);
 end
 %% Set netCDF parameters
 [g, d, v] = oceansites_create_params(meta);
@@ -54,10 +59,10 @@ cdout_os = '/noc/itg/pubread/animate/oceansites/microcat/'; % OceanSITES netCDF 
 cdout_as = ['/noc/itg/pubread/animate/animate_data/' lower(mooring) '/' deploy '/microcat/']; % animate microcat data - ftp copy
 cdout_mc = ['/noc/users/animate/animate_data/' lower(mooring) '/' deploy '/microcat/']; % animate microcat data - local copy
 in_dir = ['/noc/users/animate/animate_data/' lower(mooring) '/' deploy '/microcat/processed/']; % animate microcat data - local copy
-ffn = [cdout_os meta.id '.nc'];
+ffn = [cdout_mc g.id '.nc'];
 
 %% Create netCDF file
-make_oceansites_netcdf(ffn,g,d,v,dat)
+make_oceansites_netcdf(ffn,g,d,v,var)
 
 %% Write data into file
 

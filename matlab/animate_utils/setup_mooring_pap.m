@@ -36,10 +36,10 @@ function [meta, gr] =  setup_mooring_pap(mooring,deploy)
 %         citation: citation text
 %         acknowledgement: acknowledgements text
 %         deploy_voy: deployment cruise
-%         sdate: start date of deplyment as datenum
+%         sdatenum: start date of deplyment as datenum
 %         pro_o_start_date: Start date for Pro Oceanus O2 sensor
 %         pro_o_K_start_date: Start date for Pro Oceanus K O2 sensor
-%         edate: end date of deployment (now for current)
+%         edatenum: end date of deployment (now for current)
 % Maybe split out this calibration / processing info
 %         SBO processing info: 
 %         sbo_nv: number of SBO instruments (microcats)
@@ -70,7 +70,7 @@ mooring_no = '1'; % Need to set this according to some criteria - maybe mooring 
   meta.os_network, meta.os_id] = ...
   wmo_codes(lower(mooring),mooring_no);
 
-if isblank(meta.os_site_code)
+if isempty(meta.os_site_code)
   error(['Unrecognised mooring ' mooring]);
 end
 
@@ -83,11 +83,13 @@ switch lower(meta.os_site_code)
     meta.lon_max = -16.;
     meta.lat_min = 48.;
     meta.lat_max = 50.;
+    meta.d_min = 0;
+    meta.d_max = 30.;
   otherwise
     error(['Sorry - unable to setup mooring ' mooring ' (yet)']);
 end
 %% Data Metadata
-meta.db_table = [meta.name deploy]; % deploy is 1-9 or yyyymm
+meta.db_table = [meta.os_site_code deploy]; % deploy is 1-9 or yyyymm
 switch lower(meta.os_site_code)
   case 'pap'
     meta.pi_name = 'Richard Lampitt';
@@ -113,20 +115,20 @@ switch deploy
     meta.project = 'FixO3';
     meta.deploy_voy = 'RSS Discovery DY032';
     % Dates - save as datenum then output to range of formats when needed
-    meta.sdate = datenum('2017-04-20 12:30:00');
-    meta.pro_o_start_date = meta.sdate; % only define if different
-    meta.pro_o_K_start_date = meta.sdate; % only define if different
-    meta.edate = now; % set to now
+    meta.sdatenum = datenum('2017-04-20 12:30:00');
+    meta.pro_o_start_date = meta.sdatenum; % only define if different
+    meta.pro_o_K_start_date = meta.sdatenum; % only define if different
+    meta.edatenum = now; % set to now
     meta.num_depths = 2; % Number of unique nominal depths with sensors
  
     % Directories for graph output
     % Should be able to set same for all deployments if rename directories!
-    % gr.webdir = ['/noc/users/animate/img/pap_' datestr(meta.start_date,'yyyy_mmm') '/'];
-    gr.webdir = ['/noc/itg/www/apps/pap/pap_' datestr(meta.start_date,'yyyy_mmm') '/'];
-    % gr.webdir2 = ['/data/ncs/www/eurosites/pap/pap_' datestr(meta.start_date,'yyyy_mmm') '/'];
+    % gr.webdir = ['/noc/users/animate/img/pap_' datestr(meta.sdatenum,'yyyy_mmm') '/'];
+    gr.webdir = ['/noc/itg/www/apps/pap/pap_' datestr(meta.sdatenum,'yyyy_mmm') '/'];
+    % gr.webdir2 = ['/data/ncs/www/eurosites/pap/pap_' datestr(meta.sdatenum,'yyyy_mmm') '/'];
 
-    gr.dep_name = datestr(meta.start_date,'mmmm yyyy'); % Used for graph title
-    gr.x_lab = ['Date (' datestr(meta.start_date,'yyyy') '-' datestr(meta.end_date,'yyyy') ')']; % graph x axis label
+    gr.dep_name = datestr(meta.sdatenum,'mmmm yyyy'); % Used for graph title
+    gr.x_lab = ['Date (' datestr(meta.sdatenum,'yyyy') '-' datestr(meta.edatenum,'yyyy') ')']; % graph x axis label
 
     % Parameters needed for SBO processing
     meta.sbo_nv = 3;

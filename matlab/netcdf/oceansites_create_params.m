@@ -17,29 +17,28 @@ g.site_code = meta.os_site_code; % [req] Name of the site within OceanSITES proj
 g.platform_code = meta.os_platform_code; % [req] The unique platform code, assigned by an OceanSITES project (GDAC)
 g.data_mode = meta.mode; % [req] Indicates if the file contains real-time, provisional or delayed- mode data. The list of valid data modes is in reference table 4 (GDAC)
 g.title = [data_mode.(meta.mode) 'OceanSITES ' meta.os_site_code ' in-situ data']; % Free-format text describing the dataset, for use by human readers. Use the file name if in doubt (NUG)
-g.summary = ['Oceanographic mooring data from ' meta.os_site_code ' observatory in the ' meta.area ...
-             'Measured properties: ' meta.properties ' at ' meta.num_depths ' depth levels']'; % Longer free-format text describing the dataset. This attribute should allow data discovery for a human reader. A paragraph of up to 100 words is appropriate. (ACDD)
+g.summary = ['Oceanographic mooring data from ' meta.os_site_code ' observatory in the ' meta.data_area]; % Longer free-format text describing the dataset. This attribute should allow data discovery for a human reader. A paragraph of up to 100 words is appropriate. (ACDD)
 g.naming_authority = 'OceanSITES'; % The organization that manages data set names. (ACDD)
-g.id = ['OS_' meta.os_platform_code '_', OS_date '_' meta.mode '_' meta.data_type]; % The ?id? and ?naming_authority? attributes are intended to provide a globally unique identification for each dataset. The id may be the file name without .nc suffix, which is designed to be unique. (ACDD)
+g.id = ['OS_' meta.os_platform_code '_', datestr(meta.sdatenum,'yyyymm') '_' meta.mode '_' meta.data_type]; % The ?id? and ?naming_authority? attributes are intended to provide a globally unique identification for each dataset. The id may be the file name without .nc suffix, which is designed to be unique. (ACDD)
 g.wmo_platform_code = meta.wmo_platform_code; % WMO (World Meteorological Organization) identifier. This platform number is unique within the OceanSITES project.
 g.source = 'subsurface mooring'; % Use a term from the SeaVoX Platform Categories,(L06) list, usually one of the following: ?moored surface buoy?, ?subsurface mooring? (CF)
-if fiedname(meta,'pi_name'),  g.principal_investigator = meta.pi_name; end % Name of the person responsible for the project that produced the data contained in the file.
-if fiedname(meta,'pi_email'), g.principal_investigator_email = meta.pi_email; end % Email address of the project lead for the project that produced the data contained in the file.
-if fiedname(meta,'pi_url'),   g.principal_investigator_url = meta.pi_url; end % URL with information about the project lead
+if isfield(meta,'pi_name'),  g.principal_investigator = meta.pi_name; end % Name of the person responsible for the project that produced the data contained in the file.
+if isfield(meta,'pi_email'), g.principal_investigator_email = meta.pi_email; end % Email address of the project lead for the project that produced the data contained in the file.
+if isfield(meta,'pi_url'),   g.principal_investigator_url = meta.pi_url; end % URL with information about the project lead
 g.institution = meta.source_institution; % Specifies institution where the original data was produced. (CF)
-if fiedname(meta,'project'), g.project = meta.project;
+if isfield(meta,'project'), g.project = meta.project;
 else g.network = 'FixO3' ; end % The scientific project that produced the data.
-if fiedname(meta,'os_array'), g.array = meta.os_array; end % A grouping of sites based on a common and identified scientific question, or on a common geographic location.
-if fiedname(meta,'os_network'), g.network = meta.os_network; end % A grouping of sites based on common shore-based logistics or infrastructure.
-if fiedname(meta,'keywords_vocabulary')
+if isfield(meta,'os_array'), g.array = meta.os_array; end % A grouping of sites based on a common and identified scientific question, or on a common geographic location.
+if isfield(meta,'os_network'), g.network = meta.os_network; end % A grouping of sites based on common shore-based logistics or infrastructure.
+if isfield(meta,'keywords_vocabulary')
   g.keywords_vocabulary = meta.keywords_vocabulary; % Please use one of ?GCMD Science Keywords?, 'SeaDataNet Parameter Discovery Vocabulary' or 'AGU Index Terms'. (ACDD)
-  g.keywords = meta.keywords; % Provide comma-separated list of terms that will aid in discovery of the dataset. (ACDD)
+  if isfield(meta,'keywords'), g.keywords = meta.keywords; end% Provide comma-separated list of terms that will aid in discovery of the dataset. (ACDD)
 end;
-if fiedname(meta,'sdn_edmo_code'), g.sdn_edmo_code = meta.sdn_edmo_code; end % [Not in OceanSITES standard attributes]
+if isfield(meta,'sdn_edmo_code'), g.sdn_edmo_code = meta.sdn_edmo_code; end % [Not in OceanSITES standard attributes]
 g.comment = meta.comment_in; % Miscellaneous information about the data or methods used to produce it. Any free-format text is appropriate. (CF)
 
 %% Geo-spatial-temporal
-if fiedname(meta,'data_area'), g.area = meta.data_area;
+if isfield(meta,'data_area'), g.area = meta.data_area;
 else g.network = 'North Atlantic Ocean' ; end % Geographical coverage. Try to compose of the following: North/Tropical/South Atlantic/Pacific/Indian Ocean, Southern Ocean, Arctic Ocean. 
 g.geospatial_lat_min = num2str(meta.lat_min); % [req] The southernmost latitude, a value between -90 and 90 degrees; may be string or numeric. (ACDD, GDAC) 
 g.geospatial_lat_max = num2str(meta.lat_max); % [req] The northernmost latitude, a value between -90 and 90 degrees. (ACDD, GDAC) 
@@ -51,12 +50,12 @@ g.geospatial_vertical_min = num2str(meta.d_min); % [req] Minimum depth or height
 g.geospatial_vertical_max = num2str(meta.d_max); % [req] Maximum depth or height of measurements. (ACDD, GDAC)
 g.geospatial_vertical_positive = 'down'; % Indicates which direction is positive; "up" means that z represents height, while a value of "down" means that z represents pressure or depth. If not specified then ?down? is assumed. (ACDD)
 g.geospatial_vertical_units = 'meter'; % Units of depth, pressure, or height. If not specified then ?meter? is assumed. (ACDD)
-g.time_coverage_start = datestr(meta.sdate,osite_dfmt); % [req] Start date of the data in UTC. See note on time format below. (ACDD, GDAC)
-g.time_coverage_end = datestr(meta.edate,osite_dfmt); % [req] Final date of the data in UTC. See note on time format below. (ACDD, GDAC)
+g.time_coverage_start = datestr(meta.sdatenum,osite_dfmt); % [req] Start date of the data in UTC. See note on time format below. (ACDD, GDAC)
+g.time_coverage_end = datestr(meta.edatenum,osite_dfmt); % [req] Final date of the data in UTC. See note on time format below. (ACDD, GDAC)
 if isfield(meta,'time_coverage_duration'), g.time_coverage_duration = meta.time_coverage_duration;
-else g.time_coverage_duration = ['P' num2str(floor(edate-sdate)) 'D']; end % Use ISO 8601 (examples: P1Y ,P3M, P10D) (ACDD)
+else g.time_coverage_duration = ['P' num2str(floor(meta.edatenum-meta.sdatenum)) 'D']; end % Use ISO 8601 (examples: P1Y ,P3M, P10D) (ACDD)
 if isfield(meta,'time_coverage_resolution'), g.time_coverage_resolution = 'time_coverage_resolution'; 
-else g.time_coverage_resolution = ['PT' num2str((edate-sdate)*(24*60)) 'M']; end % Interval between records: Use ISO 8601 (PnYnMnDTnHnMnS) e.g. PT5M for 5 minutes, PT1H for hourly, PT30S for 30 seconds. (ACDD)
+else g.time_coverage_resolution = ['PT' num2str((meta.edatenum-meta.sdatenum)*(24*60)) 'M']; end % Interval between records: Use ISO 8601 (PnYnMnDTnHnMnS) e.g. PT5M for 5 minutes, PT1H for hourly, PT30S for 30 seconds. (ACDD)
 g.cdm_data_type = 'station'; % [req] The Unidata CDM (common data model) data type used by THREDDS. e.g. point, profile, section, station, station_profile, trajectory, grid, radial, swath, image; use Station for OceanSITES mooring data. (ACDD)
 if isfield(meta,'featureType'), g.featureType = meta.featureType;
 else g.featureType = 'timeSeries'; end % Optional, and only for files using the Discrete Sampling Geometry, available in CF-1.5 and later. See CF documents. (CF)
@@ -70,11 +69,11 @@ else g.netcdf_version = '3.5'; % if not specified, or not set >3, default to 3.5
 end % NetCDF version used for the data set
 
 %% Publication information 
-if isfield(meta,'publisher_name'), g.publisher_name = publisher_name;
+if isfield(meta,'publisher_name'), g.publisher_name = meta.publisher_name;
 else g.publisher_name = meta.author; end; % Name of the person responsible for metadata and formatting of the data file. (ACDD) 
-if isfield(meta,'publisher_email'), g.publisher_email = publisher_email;
+if isfield(meta,'publisher_email'), g.publisher_email = meta.publisher_email;
 else g.publisher_email = meta.contacts_email; end; % Email address of person responsible for metadata and formatting of the data file. (ACDD) 
-if isfield(meta,'publisher_url'), g.publisher_url = publisher_url;
+if isfield(meta,'publisher_url'), g.publisher_url = meta.publisher_url;
 else g.publisher_url = meta.author_url; end; % Web address of the institution or of the data publisher. (ACDD) 
 g.references = meta.references; % Published or web-based references that describe the data or methods used to produce it. Include a reference to OceanSITES and a project-specific reference if appropriate. 
 g.institution_references = meta.institution_references; % [Not in OceanSITES standard attributes]
@@ -90,7 +89,7 @@ if isfield(meta,'citation')
 else
   g.citation = ['These data were collected and made freely available by the EuroSITES and OceanSITES project and the national programs that contribute to it.'];
 end % The citation to be used in publications using the dataset; should include a reference to OceanSITES but may contain any other text deemed appropriate by the PI and DAC.. 
-if isfield(meta,'acknowledgement'), g.acknowledgement = metaacknowledgement;
+if isfield(meta,'acknowledgement'), g.acknowledgement = meta.acknowledgement;
 elseif isfield(meta,'citation'), g.acknowledgement = meta.citation;
 end; % A place to acknowledge various types of support for the project that produced this data. (ACDD) 
 
@@ -124,7 +123,7 @@ varStruct = struct('xType', [], 'dimids', [], 'Atts', []); % Empty variable defi
 % We always have TIME, DEPTH, LAT and LON
 v = struct('time', varStruct,'depth', varStruct,'lat', varStruct,'lon', varStruct);
 v.time.xType = 'NC_DOUBLE';
-v.time.dimids = 1;
+v.time.dimids = {'TIME'};
 v.time.Atts = struct(...
       'long_name', 'Date and Time',...
       'standard_name', 'time',...
@@ -137,7 +136,7 @@ v.time.Atts = struct(...
       'comments','' ...
       );
 v.depth.xType = 'NC_FLOAT';
-v.depth.dimids = 2;
+v.depth.dimids = {'DEPTH'};
 v.depth.Atts = struct(...
       'long_name', 'Depth of each measurement', ...
       'standard_name', 'depth', ...
@@ -151,7 +150,7 @@ v.depth.Atts = struct(...
       'comments','' ...
       );
 v.lat.xType = 'NC_FLOAT';
-v.lat.dimids = 3;
+v.lat.dimids = {'LAT'};
 v.lat.Atts = struct(...
       'long_name', 'latitude of each location', ...
       'standard_name', 'latitude', ...
@@ -163,7 +162,7 @@ v.lat.Atts = struct(...
       'comments','' ...
       );
 v.lon.xType = 'NC_FLOAT';
-v.lon.dimids = 4;
+v.lon.dimids = {'LON'};
 v.lon.Atts = struct(...
       'long_name', 'longitude of each location', ...
       'standard_name', 'longitude', ...
@@ -177,7 +176,10 @@ v.lon.Atts = struct(...
 
 switch meta.data_type
   case 'CTD' % microcats
-    v1 = def_pap_microcat(meta);
+    [v1, meta] = def_pap_microcat(meta);
+    g.summary = ['Oceanographic mooring data from ' meta.os_site_code ' observatory in the ' meta.data_area ...
+             'Measured properties: ' meta.properties ' at ' meta.num_depths ' depth levels']';
+    g.keywords = meta.keywords;
   otherwise
     disp(['Unknown DataType ' meta.data_type '- no variables defined']);
     v1 = [];
