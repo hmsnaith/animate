@@ -128,6 +128,13 @@ switch deploy
 
     % Parameters needed for SBO processing
     meta.sbo_nv = 3;
+    meta.sbo_sensor_model = {'MicroCAT sbe-37IMP-IDO with pump' ...
+                             'MicroCAT sbe-37IMP-ODO with pump' ...
+                             'MicroCAT sbe-37IMP-ODO with pump'};
+    meta.sbo_sensor_manufacturer = 'Seabird Electronics';
+    %meta.sbo_sensor_reference
+    meta.sbo_sensor_mount = 'mounted_on_mooring_line';
+    meta.sbo_sensor_orientation = 'vertical';
     meta.sbo = [1,9030; 30,10535; 30,13397];     % amended to be serial numbers for current deployment
     meta.sbo_press_corr = [0, 0, 0];
     gr.sboYlim = []; % previous [5 7];Used to set Y Limits on sbo graphs

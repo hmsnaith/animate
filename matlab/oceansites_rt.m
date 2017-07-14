@@ -20,7 +20,8 @@ addpath('/noc/users/animate/animate/matlab/netcdf');
 
 %% Setup the metadata for this mooring / deployment
 [meta, ~] = setup_mooring_pap(mooring,deploy);
-      
+%% Set the OceanSITES table information
+[meta.OS_tab2, meta.OS_tab3] = oceansites_ref_tables;
 %% Setup the generic NRT metadata
 meta.mode = 'R'; % OceanSITES code for Near Real Time mode
 meta.ncVerNo = 3; % Still using netCDF v3 at the moment

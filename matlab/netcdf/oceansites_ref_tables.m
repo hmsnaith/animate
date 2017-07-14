@@ -7,8 +7,8 @@ ref_tab_2={
 'probably_good_date'; % 3
 'potentially_correctable_bad_data'; % 4
 'bad_data'; % 5
-''; % 6
-''; % 7
+'-'; % 6
+'-'; % 7
 'nominal_value'; % 8
 'interpolated_value'; % 9
 'missing_value'}; % 10
@@ -21,9 +21,9 @@ ref_tab_3={
 'Data has been scaled using contextual information'; % 4
 'Known bad data has been replaced with null values'; % 5
 'Known bad data has been replaced with values based on surrounding data'; % 6
-'Ranges applied, bad data flagged '; % 7
-'Data interpolated '; % 8
-'Data manually reviewed '; % 9
-'Data verified against model or other contextual information '; % 10
-'Other QC process applied ' % 11
+'Ranges applied, bad data flagged'; % 7
+'Data interpolated'; % 8
+'Data manually reviewed'; % 9
+'Data verified against model or other contextual information'; % 10
+'Other QC process applied' % 11
 };
