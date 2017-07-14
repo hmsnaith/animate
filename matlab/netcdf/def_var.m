@@ -17,15 +17,27 @@ function v = def_var(vname,xType,dep_str,vm,instr,hasqc)
 %         sensor_serial_number
 %         sensor_mount
 %         sensor_orientation
-% hasqc - (optional) true if a matching QC variable exists
+% hasqc - (optional) true if a matching QC variable (vname_QC) exists
 %
 % Output v is a structure having fields:
-%       xType, dimids (always = [1 2 3 4]) and Atts.
+%       xType, dimids (always = {'TIME' 'DEPTH' 'LAT' 'LON'}) and Atts.
 %       Atts is a structure which always has fields:
-%         long_name, description, FillValue (dependant on xType),
-%         and missing_value(9 or 9999 dependant on xType)
+%         long_name
+%         comment
+%         FillValue (dependant on xType),
+%        [ and missing_value (9 or 9999 dependant on xType) ] - not set
+%         coordinates = 'time depth lat lon'
+%         cell_methods = 'TIME: point DEPTH: point';
+%         DM_indicator = 'R'
+%       Non-QC variables have additional attributes:
+%         processing_level (dependant on xType),
+%         ancillary_variables (is hasqc set),
 %       If defined, also has:
-%         standard_name, units, epic_code, valid_min, valid_max
+%         standard_name, units, valid_min, valid_max
+%         and input instrument metadata
+%       QC variables have attributes:
+%         flag_values ([0:9])
+%         flag_meanings (oceansite_ref_table - table2 values)
 
 long_names = struct('TEMP', 'Temperature', ...
                     'CNDC', 'Conductivity', ...
@@ -39,7 +51,7 @@ standard_names = struct('TEMP', 'sea_water_temperature', ...
                         );
 units = struct('TEMP', 'degree_Celsius', ...
                'CNDC', 'mS/cm', ...
-               'PSAL', 'le-3', ...
+               'PSAL', '1e-3', ...
                'PRES', 'dbar' ...
                );
 x_types = struct('NC_DOUBLE', 'double', ...
@@ -48,16 +60,19 @@ x_types = struct('NC_DOUBLE', 'double', ...
                  'NC_SHORT', 'int16', ...
                  'NC_BYTE', 'int8' ...
                  );
+[OS_tab2, OS_tab3] = oceansites_ref_tables;
+
 switch vname(end-1:end)
   case 'QC'
     long_name = ['Quality Flag for ' long_names.(vname(1:end-3))];
     flag_values = 0:9;
-    flag_meanings = strjoin(oceansites_ref_tables);
+    flag_meanings = strjoin(OS_tab2);
   otherwise
     long_name = long_names.(vname);
+    processing_level = OS_tab3{2};
 end
 if isfield(units,vname)
-  description = [long_name ' (' strrep(units.(vname),'_',' ') 'at nominal depths ' dep_str];
+  description = [long_name ' (' strrep(units.(vname),'_',' ') ') at nominal depths ' dep_str];
 else
   description = [long_name ' at nominal depths' dep_str];
 end
@@ -78,7 +93,7 @@ v.Atts.FillValue = netcdf.getConstant(strrep(xType,'NC_','NC_FILL_'));
 v.Atts.coordinates = 'time depth lat lon';
 v.Atts.long_name = long_name;
 % v.Atts.QC_indicator = meta.OS_tab2{2}; % reset on read?
-v.Atts.processing_level = meta.OS_tab3{2}; % reset on read?
+if exist('processing_level','var'), v.Atts.processing_level = processing_level; end% reset on read?
 if exist('vm','var') && ~isempty(vm)
   v.Atts.valid_min = cast(vm(1),x_types.(xType));
   v.Atts.valid_max = cast(vm(2),x_types.(xType));
@@ -93,7 +108,7 @@ switch vname(end-1:end)
     if exist('flag_meanings','var'), v.Atts.flag_meanings = flag_meanings; end
   otherwise
     v.Atts.cell_methods = 'TIME: point DEPTH: point';
-    v.Atts.DM_indicator = 'R';
+    v.Atts.DM_indicator = 'R'; % assume real time - change to DM in calling routine if different
     atts = fieldnames(instr);
     if length(atts) > 1;
       for i=1:length(atts); v.Atts.(atts{i}) = instr.(atts{i}); end

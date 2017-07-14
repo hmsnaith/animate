@@ -1,4 +1,4 @@
-function make_oceansites_netcdf(ffn,g,d,v,dat)
+function oceansites_make_netcdf(ffn,g,d,v,dat)
 % make_oceansites_netcdf(ffn,g,d,v,dat)
 % Create OceanSITES netCDF file
 %
@@ -73,7 +73,7 @@ for i=1:length(varNames)
   % Convert varIn.dimids (dimension names) to dimension ids
   ndims = length(varIn.dimids);
   dims = NaN(1,ndims);
-  for i=1:ndims, dims(i)=dimids.(varIn.dimids{i}); end
+  for j=1:ndims, dims(j)=dimids.(varIn.dimids{j}); end
   varid = netcdf.defVar(scope,varName,varIn.xType,dims);
   attNames = fieldnames(varIn.Atts);
   for j=1:length(attNames)

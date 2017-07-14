@@ -73,37 +73,6 @@ for m=1:meta.sbo_nv;
     % Apply pressure correction
     sbodat(m).press=sbodat(m).press-meta.sbo_press_corr(m);
     
-%     % Reject all Oxygen values >=10
-%     qc = sbodat(m).ox > 9.9;
-%     sbodat(m).ox(qc)=NaN;
-        
-    % Calculate Salinty
-%     sbodat(m).S = salinity(sbodat(m).press, sbodat(m).temp, sbodat(m).cond);
-%     sbodat(m).S_qc = int16(zeros(1,sbodat(m).n));
-%     sbodat(m).S_qc = find((sbodat(m).S < 34.5) | (sbodat(m).S > 35.7));
-
-%     if (~isempty(sbodat(m).S_qc))
-%       disp(' potential out of range SBO salinity');
-%       fprintf('    %s\n',datestr(sbodat(m).Date_Time(qc)));
-%     end
-    
-%     % Calculate SigmaT
-%     sbodat(m).St = sigmat(sbodat(m).temp,sbodat(m).S);
-    
-%     % Calculate Oxygen (/mol)
-%     sbodat(m).ox_mol = sbodat(m).ox * 44.658;
-%     
-%     % Calculate T compensated Oxygen sat for all valid Oxygen values
-%     sbo_t_rat_1 = 298.15-sbodat(m).temp;
-%     sbo_t_rat_2 = 273.15+sbodat(m).temp;
-%     sbo_temp_K_ratio = sbo_t_rat_1./sbo_t_rat_2;
-%     sbo_temp_scaled = log(sbo_temp_K_ratio);
-%     
-%     s_coeff =(b0+(b1.*sbo_temp_scaled)+(b2.*sbo_temp_scaled.^2)+(b3.*sbo_temp_scaled.^3));
-%     
-%     sbodat(m).ox_mol_comp = sbodat(m).ox_mol.*(exp((sbodat(m).S.*s_coeff)+(c0*sbodat(m).S.^2)));
-%     sbodat(m).ox_mol_comp(isnan(sbodat(m).ox)) = NaN;
-    
   end % end of 'if sbodat(m).n>0'
 end
 %% Transfer sbodat to var
@@ -174,12 +143,12 @@ for j=1:length(flds)
       % At the moment, using nearest! sorts QC values...
       % var.(varnm)(:,i,1,1) = interp1(sbodat(m).Date_Time,sbodat(m).(fldnm),var.TIME,'nearest','extrap')';
       % Use results of intersect to select matching records
-      var.(varnm)(t_used(:,1)>0,i,1,1) = sbodat(m).(fldnm)(t_used(t_used(:,1)>0,1));
+      var.(varnm)(t_used(:,i)>0,i,1,1) = sbodat(m).(fldnm)(t_used(t_used(:,i)>0,i));
     end
   end
 end
 
-%% Apply QC
+%% Apply QC to measured parameters
 % Pressure 1-1799, and not flagged
 var.PRES_QC(var.PRES>1800 | var.PRES<1 | var.PRES_QC>1) = 9;
 var.PRES(var.PRES_QC==9) = NaN;
@@ -195,6 +164,37 @@ var.CNDC(var.CNDC_QC==9) = NaN;
 % If temperature bad, conductivity also bad
 var.CNDC(var.TEMP_QC>1) = NaN;
 
+% Reject all Oxygen values >=10
+qc = sbodat(m).ox > 9.9;
+sbodat(m).ox(qc)=NaN;
+        
+    % Calculate Salinty
+%     sbodat(m).S = salinity(sbodat(m).press, sbodat(m).temp, sbodat(m).cond);
+%     sbodat(m).S_qc = int16(zeros(1,sbodat(m).n));
+%     sbodat(m).S_qc = find((sbodat(m).S < 34.5) | (sbodat(m).S > 35.7));
+
+%     if (~isempty(sbodat(m).S_qc))
+%       disp(' potential out of range SBO salinity');
+%       fprintf('    %s\n',datestr(sbodat(m).Date_Time(qc)));
+%     end
+    
+%     % Calculate SigmaT
+%     sbodat(m).St = sigmat(sbodat(m).temp,sbodat(m).S);
+    
+%     % Calculate Oxygen (/mol)
+%     sbodat(m).ox_mol = sbodat(m).ox * 44.658;
+%     
+%     % Calculate T compensated Oxygen sat for all valid Oxygen values
+%     sbo_t_rat_1 = 298.15-sbodat(m).temp;
+%     sbo_t_rat_2 = 273.15+sbodat(m).temp;
+%     sbo_temp_K_ratio = sbo_t_rat_1./sbo_t_rat_2;
+%     sbo_temp_scaled = log(sbo_temp_K_ratio);
+%     
+%     s_coeff =(b0+(b1.*sbo_temp_scaled)+(b2.*sbo_temp_scaled.^2)+(b3.*sbo_temp_scaled.^3));
+%     
+%     sbodat(m).ox_mol_comp = sbodat(m).ox_mol.*(exp((sbodat(m).S.*s_coeff)+(c0*sbodat(m).S.^2)));
+%     sbodat(m).ox_mol_comp(isnan(sbodat(m).ox)) = NaN;
+
 %% Calculate derived parameters
 % Salinity (& potenital temp) need good TEMP, CNDC & PRES
 qc = find(var.PRES_QC<1 & var.TEMP_QC<1 & var.CNDC_QC<1);
@@ -206,14 +206,14 @@ var.PSAL(qc) = salinity(var.PRES(qc), Tsal, var.CNDC(qc));
 var.PSAL_QC(isnan(var.PSAL)) = 9;
 % var.POTEMP(qc) =sigmat(Tsal,var.PSAL(qc));
 
-%% change Nans to Fill values
-for j=1:length(flds)
-  varnm = fldmap.(flds{j});
-  % Setup 'bad' records - NaN for values, QC=1
-  if ~strcmp(varnm(end-1:end),'QC')
-      var.(varnm)(isnan(var.(varnm))) = 99999.0;
-  end
-end
+%% change Nans to Fill values - changed to do in oceansites_make_netcdf
+% for j=1:length(flds)
+%   varnm = fldmap.(flds{j});
+%   % Setup 'bad' records - NaN for values, QC=1
+%   if ~strcmp(varnm(end-1:end),'QC')
+%       var.(varnm)(isnan(var.(varnm))) = 99999.0;
+%   end
+% end
 
 end
 

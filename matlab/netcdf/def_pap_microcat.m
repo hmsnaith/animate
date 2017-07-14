@@ -43,7 +43,7 @@ v.(vname).Atts.accuracy = 0.02;
 v.(vname).Atts.resolution = 0.001;
 vname = 'CNDC_QC'; v.(vname) = def_var(vname,'NC_BYTE',meta.dep_str,[0 9],instr_qc);
 
-vname = 'PRES'; v.(vname) = def_var(vname,'NC_FLOAT',meta.dep_str,[0. 12000.],instr,1);
+vname = 'PRES'; v.(vname) = def_var(vname,'NC_FLOAT',meta.dep_str,[0. 6000.],instr,1);
 % v.(vname).Atts.uncertainty = ;
 v.(vname).Atts.accuracy = 0.25;
 % v.(vname).Atts.precision = ;
