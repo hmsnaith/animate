@@ -4,18 +4,10 @@ function [ var, meta ] = read_animate_microcat(meta)
 %% Setup variables
 sbodat(1:meta.sbo_nv) = struct('n',0, 'Date_Time',[], ...
                  'temp',[], 'temp_qc',[], 'cond',[], 'cond_qc',[], ...
-                 'press',[], 'press_qc',[] ...
-                 ); % Just get out key variables for now - add others later
-%                  'press',[],'press_qc',[],'S',[],'S_qc',...
-%                  'St',[],'St_qc,[],...
-%                  'ox',[],'ox_qc',[],'ox_mol',[],'ox_mol_qc',[],...
-%                  'ox_mol_comp',[],'ox_mol_comp_qc',[]...
-%                  );
+                 'press',[], 'press_qc',[], 'ox',[],'ox_qc',[]...
+                 ); % Measured variables from database
 flds = {'Date_Time', 'sbo_temp', 'sbo_temp_qc', 'sbo_cond', 'sbo_cond_qc',...
-                     'sbo_press',  'sbo_press_qc'};
-%                      'sbo_press',  'sbo_press_qc', ...
-%                      'sbo_ox', 'sbo_ox_qc',...
-%                      'ox_mol', 'ox_mol_qc','ox_mol_comp', 'ox_mol_comp_qc'};
+                   'sbo_press',  'sbo_press_qc', 'sbo_ox', 'sbo_ox_qc'};
 fldmap = struct(...
          'temp','TEMP',...
          'temp_qc','TEMP_QC',...
@@ -23,12 +15,14 @@ fldmap = struct(...
          'cond_qc','CNDC_QC',...
          'press','PRES',...
          'press_qc','PRES_QC',...
+         'ox','DOXM',...
+         'ox_qc','DOXM_QC',...
          'PSAL','PSAL',...
          'PSAL_QC','PSAL_QC'...
          );
 have_data = zeros(1,meta.sbo_nv);
 last_date = datenum('01-01-1900');
-%% Read in, apply QC and Calculate Derived Values
+%% Read in Measurmenets from database
 start_date = datestr(meta.sdatenum,'yyyy-mm-dd HH:MM:SS');
 end_date = datestr(meta.edatenum,'yyyy-mm-dd HH:MM:SS');
 % For each SBO dataset
@@ -42,8 +36,7 @@ for m=1:meta.sbo_nv;
     % transfer data into sbodat structure
     sbodat(m).Date_Time = DATA.Date_Time;
     last_date = max(last_date,sbodat(m).Date_Time(end));
-%     for fld={'temp','cond','press','ox'}
-    for fld={'temp','cond','press'}
+    for fld={'temp','cond','press','ox'}
       % Copy basic measurements into data structure
       fldnm = ['sbo_' char(fld)];
       sbodat(m).(char(fld)) = DATA.(fldnm);
@@ -124,24 +117,23 @@ for m=find(have_data==1)
   t_used(it,i) = is;
 end
 
-% Transfer to var structure
+% Transfer measurements to var structure
 flds = fieldnames(fldmap);
 
 for j=1:length(flds)
   fldnm = flds{j};
   varnm = fldmap.(fldnm);
-  % Setup 'bad' records - NaN for values, QC=1
+  % Setup empty arrays as 'bad' records - NaN for values, QC=1
   if strcmp(varnm(end-1:end),'QC')
     var.(varnm) = int16(ones(meta.nrecs,meta.num_depths,1,1));
   else
     var.(varnm) = NaN(meta.nrecs,meta.num_depths,1,1);
   end
   i = 0;
-  if isfield(sbodat,fldnm) % We haven't done salinity (or potential temp) yet...
+  if isfield(sbodat,fldnm) % We haven't done ox, salinity (or potential temp) yet...
     for m=find(have_data==1)
       i = i + 1;
       % At the moment, using nearest! sorts QC values...
-      % var.(varnm)(:,i,1,1) = interp1(sbodat(m).Date_Time,sbodat(m).(fldnm),var.TIME,'nearest','extrap')';
       % Use results of intersect to select matching records
       var.(varnm)(t_used(:,i)>0,i,1,1) = sbodat(m).(fldnm)(t_used(t_used(:,i)>0,i));
     end
@@ -150,62 +142,54 @@ end
 
 %% Apply QC to measured parameters
 % Pressure 1-1799, and not flagged
-var.PRES_QC(var.PRES>1800 | var.PRES<1 | var.PRES_QC>1) = 9;
+var.PRES_QC(isNaN(var.PRES)) = 9;
+var.PRES_QC(var.PRES>1800 | var.PRES<1) = 4; % bad_data
 var.PRES(var.PRES_QC==9) = NaN;
 
 % Temperature >=0.1, <=99, not=22.222
-var.TEMP_QC(var.TEMP==22.222 | var.TEMP>99 | var.TEMP<0.1) = 9;
-var.TEMP(var.TEMP_QC==9) = NaN;
+var.TEMP_QC(isNaN(var.TEMP)) = 9; % maybe add | TEMP_QC>1
+var.TEMP_QC(var.TEMP==22.222 | var.TEMP>99 | var.TEMP<0.1) = 4;
+% var.TEMP(var.TEMP_QC==9) = NaN; % include if use TEMP_QC>1 
 
 % Conductivity >=0.1, <=99, not=22.222
-var.CNDC_QC(var.CNDC==22.222 | var.CNDC>99 | var.CNDC<0.1) = 9;
-var.CNDC(var.CNDC_QC==9) = NaN;
+var.CNDC_QC(isNaN(var.CNDC)) = 9; % maybe add | CNDC_QC>1
+var.CNDC_QC(var.CNDC==22.222 | var.CNDC>99 | var.CNDC<0.1) = 4;
+% var.CNDC(var.CNDC_QC==9) = NaN; % include if use CNDC_QC>1
 
 % If temperature bad, conductivity also bad
-var.CNDC(var.TEMP_QC>1) = NaN;
+var.CNDC_QC(var.TEMP_QC>1) = 4;
 
 % Reject all Oxygen values >=10
-qc = sbodat(m).ox > 9.9;
-sbodat(m).ox(qc)=NaN;
-        
-    % Calculate Salinty
-%     sbodat(m).S = salinity(sbodat(m).press, sbodat(m).temp, sbodat(m).cond);
-%     sbodat(m).S_qc = int16(zeros(1,sbodat(m).n));
-%     sbodat(m).S_qc = find((sbodat(m).S < 34.5) | (sbodat(m).S > 35.7));
-
-%     if (~isempty(sbodat(m).S_qc))
-%       disp(' potential out of range SBO salinity');
-%       fprintf('    %s\n',datestr(sbodat(m).Date_Time(qc)));
-%     end
-    
-%     % Calculate SigmaT
-%     sbodat(m).St = sigmat(sbodat(m).temp,sbodat(m).S);
-    
-%     % Calculate Oxygen (/mol)
-%     sbodat(m).ox_mol = sbodat(m).ox * 44.658;
-%     
-%     % Calculate T compensated Oxygen sat for all valid Oxygen values
-%     sbo_t_rat_1 = 298.15-sbodat(m).temp;
-%     sbo_t_rat_2 = 273.15+sbodat(m).temp;
-%     sbo_temp_K_ratio = sbo_t_rat_1./sbo_t_rat_2;
-%     sbo_temp_scaled = log(sbo_temp_K_ratio);
-%     
-%     s_coeff =(b0+(b1.*sbo_temp_scaled)+(b2.*sbo_temp_scaled.^2)+(b3.*sbo_temp_scaled.^3));
-%     
-%     sbodat(m).ox_mol_comp = sbodat(m).ox_mol.*(exp((sbodat(m).S.*s_coeff)+(c0*sbodat(m).S.^2)));
-%     sbodat(m).ox_mol_comp(isnan(sbodat(m).ox)) = NaN;
+var.DOXM_QC(isNaN(var.DOXM)) = 9;
+var.DOXM_QC(var.DOXM > 9.9) = 4;        
 
 %% Calculate derived parameters
+% Calculate Oxygen (/mol)
+var.DOXM = var.DOXM * 44.658;
+
 % Salinity (& potenital temp) need good TEMP, CNDC & PRES
 qc = find(var.PRES_QC<1 & var.TEMP_QC<1 & var.CNDC_QC<1);
-%   var.POTEMP(qc) = NaN;
-%   var.POTEMP_QC(qc) = 9;
 
+% Calcaulte salinity
 Tsal = t90tot68(var.TEMP(qc));
 var.PSAL(qc) = salinity(var.PRES(qc), Tsal, var.CNDC(qc));
-var.PSAL_QC(isnan(var.PSAL)) = 9;
-% var.POTEMP(qc) =sigmat(Tsal,var.PSAL(qc));
+var.PSAL_QC(isnan(var.PSAL)) = 9; % Will be true where not calculated
+var.PSAL_QC(var.PSAL< 34.5 | var.PSAL > 35.7) = 5;
 
+% Calculate Potential Temperature
+% var.POTEMP(qc) = sigmat(Tsal,var.PSAL(qc));
+% var.POTEMP_QC(isnan(var.POTEMP)) = 9;
+
+% % Calculate T compensated Oxygen sat
+% sbo_t_rat_1 = 298.15-var.TEMP;
+% sbo_t_rat_2 = 273.15+var.TEMP;
+% sbo_temp_K_ratio = sbo_t_rat_1./sbo_t_rat_2;
+% sbo_temp_scaled = log(sbo_temp_K_ratio);
+% 
+% s_coeff = (meta.sb0_b(1)+(meta.sb0_b(2).*sbo_temp_scaled)+...
+%   (meta.sb0_b(3).*sbo_temp_scaled.^2)+(meta.sb0_b(4).*sbo_temp_scaled.^3));
+% 
+% var.DOXM_comp = var.DOXM.*(exp((sbodat(m).S.*s_coeff)+(meta.sb0_c0*sbodat(m).S.^2)));
 %% change Nans to Fill values - changed to do in oceansites_make_netcdf
 % for j=1:length(flds)
 %   varnm = fldmap.(flds{j});
