@@ -57,11 +57,24 @@ v.(vname).Atts.accuracy = 0.25;
 v.(vname).Atts.resolution = 0.03;
 v.(vname).Atts.reference_scale = 'PSS-78';
 vname = 'PSAL_QC'; v.(vname) = def_var(vname,'NC_BYTE',meta.dep_str,[0 9],instr_qc);
- 
 
+% If this set of microcats has oxygen - setup Oxygen variable
+if strcmp(meta.data_type,'CTDO')
+  vname = 'DOX2'; v.(vname) = def_var(vname,'NC_FLOAT',meta.dep_str,[1. 446.],instr,1);
+  v.(vname).Atts.comment = [v.(vname).Atts.comment ' Measured in ml/l converted to micromole/kg'];
+  % v.(vname).Atts.uncertainty = ;
+  v.(vname).Atts.accuracy = 8.;
+  v.(vname).Atts.precision = 5.;
+  v.(vname).Atts.resolution = 1;
+  vname = 'DOX2_QC'; v.(vname) = def_var(vname,'NC_BYTE',meta.dep_str,[0 9],instr_qc);
+end
 %% Additional attributes that need to be set up
 meta.time_coverage_resolution = 'PT30M';
-meta.properties = 'Pressure, Temperature, Conductivity and Salinity';
-meta.keywords = 'WC_Temp, WC_Sal, http://vocab.nerc.ac.uk/collection/P02/current/TEMP/, http://vocab.nerc.ac.uk/collection/P02/current/PSAL/, http://vocab.nerc.ac.uk/collection/P02/current/DOXY/'; %-> def_pap_microcats
-
+if strcmp(meta.data_type,'CTDO')
+  meta.properties = 'Pressure, Temperature, Conductivity, Salinity and Oxygen';
+  meta.keywords = 'WC_Temp, WC_Sal, http://vocab.nerc.ac.uk/collection/P02/current/TEMP/, http://vocab.nerc.ac.uk/collection/P02/current/PSAL/, http://vocab.nerc.ac.uk/collection/P02/current/DOX2/'; %-> def_pap_microcats
+else
+  meta.properties = 'Pressure, Temperature, Conductivity and Salinity';
+  meta.keywords = 'WC_Temp, WC_Sal, http://vocab.nerc.ac.uk/collection/P02/current/TEMP/, http://vocab.nerc.ac.uk/collection/P02/current/PSAL/'; %-> def_pap_microcats
+end
 end

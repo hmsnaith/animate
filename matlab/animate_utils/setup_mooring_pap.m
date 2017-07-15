@@ -128,6 +128,7 @@ switch deploy
 
     % Parameters needed for SBO processing
     meta.sbo_nv = 3;
+    meta.sbo_ox = 1;
     meta.sbo_sensor_model = {'MicroCAT sbe-37IMP-ODO with pump' ...
                              'MicroCAT sbe-37IMP-ODO with pump' ...
                              'MicroCAT sbe-37IMP-ODO with pump'};

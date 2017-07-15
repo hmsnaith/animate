@@ -41,16 +41,12 @@ meta.contributor_email = 'bodcnocs@bodc.ac.uk';
 meta.keywords_vocabulary = 'SeaDataNet Parameter Discovery Vocabulary';
 meta.qc_manual='MERSEA: In-situ real-time data quality control. Mersea-WP03-IFR-UMAN-001-02A, November 2005';
 
-%% Setup variable specific metadata
-% switch ds
-%   case {'mc','microcat','CTD'}
-%   [v, meta] = def_pap_microcat(meta);
-% end
 %% Read in data
 switch ds
-  case {'mc','microcat','CTD'}
+  case {'mc','microcat','CTD','CTDO'}
     meta.data_type = 'CTD';
     [var,meta] = read_animate_microcat(meta);
+    if meta.sbo_ox==1, meta.data_type = 'CTDO'; end
 end
 %% Set netCDF parameters - calls def_(datatype)
 [g, d, v] = oceansites_create_params(meta);

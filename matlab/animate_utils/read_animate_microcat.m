@@ -15,11 +15,15 @@ fldmap = struct(...
          'cond_qc','CNDC_QC',...
          'press','PRES',...
          'press_qc','PRES_QC',...
-         'ox','DOXM',...
-         'ox_qc','DOXM_QC',...
          'PSAL','PSAL',...
          'PSAL_QC','PSAL_QC'...
          );
+if meta.sbo_ox==1, fldmap.ox = 'DOX2'; fldmap.ox_qc = 'DOX2_QC'; end
+varnms = fieldnames(fldmap);
+i = 1;
+while i<=length(varnms)
+  if strcmpi(varnms{i}(end-1:end),'qc'), varnms(i)=[]; else i=i+1; end
+end
 have_data = zeros(1,meta.sbo_nv);
 last_date = datenum('01-01-1900');
 %% Read in Measurmenets from database
@@ -36,7 +40,7 @@ for m=1:meta.sbo_nv;
     % transfer data into sbodat structure
     sbodat(m).Date_Time = DATA.Date_Time;
     last_date = max(last_date,sbodat(m).Date_Time(end));
-    for fld={'temp','cond','press','ox'}
+    for fld=varnms
       % Copy basic measurements into data structure
       fldnm = ['sbo_' char(fld)];
       sbodat(m).(char(fld)) = DATA.(fldnm);
@@ -159,18 +163,20 @@ var.CNDC_QC(var.CNDC==22.222 | var.CNDC>99 | var.CNDC<0.1) = 4;
 % If temperature bad, conductivity also bad
 var.CNDC_QC(var.TEMP_QC>1) = 4;
 
-% Reject all Oxygen values >=10
-var.DOXM_QC(isNaN(var.DOXM)) = 9;
-var.DOXM_QC(var.DOXM > 9.9) = 4;        
-
+if isfield(var.DOX2)
+  % Reject all Oxygen values >=10
+  var.DOX2_QC(isNaN(var.DOX2)) = 9;
+  var.DOX2_QC(var.DOX2 > 9.9) = 4;
+end
 %% Calculate derived parameters
-% Calculate Oxygen (/mol)
-var.DOXM = var.DOXM * 44.658;
-
-% Salinity (& potenital temp) need good TEMP, CNDC & PRES
+if isfield(var.DOX2)
+  % Calculate Oxygen (/mol)
+  var.DOX2 = var.DOX2 * 44.658;
+end
+% Salinity (& potential temp) need good TEMP, CNDC & PRES
 qc = find(var.PRES_QC<1 & var.TEMP_QC<1 & var.CNDC_QC<1);
 
-% Calcaulte salinity
+% Calculate salinity
 Tsal = t90tot68(var.TEMP(qc));
 var.PSAL(qc) = salinity(var.PRES(qc), Tsal, var.CNDC(qc));
 var.PSAL_QC(isnan(var.PSAL)) = 9; % Will be true where not calculated
@@ -189,7 +195,7 @@ var.PSAL_QC(var.PSAL< 34.5 | var.PSAL > 35.7) = 5;
 % s_coeff = (meta.sb0_b(1)+(meta.sb0_b(2).*sbo_temp_scaled)+...
 %   (meta.sb0_b(3).*sbo_temp_scaled.^2)+(meta.sb0_b(4).*sbo_temp_scaled.^3));
 % 
-% var.DOXM_comp = var.DOXM.*(exp((sbodat(m).S.*s_coeff)+(meta.sb0_c0*sbodat(m).S.^2)));
+% var.DOX2_comp = var.DOX2.*(exp((sbodat(m).S.*s_coeff)+(meta.sb0_c0*sbodat(m).S.^2)));
 %% change Nans to Fill values - changed to do in oceansites_make_netcdf
 % for j=1:length(flds)
 %   varnm = fldmap.(flds{j});
