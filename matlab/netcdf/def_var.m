@@ -21,12 +21,14 @@ function v = def_var(vname,xType,dep_str,vm,instr,hasqc)
 %
 % Output v is a structure having fields:
 %       xType, dimids (always = {'TIME' 'DEPTH' 'LAT' 'LON'}) and Atts.
+%          note : to get c ordering correct, we actually set dimids as
+%             {'LON' 'LAT' 'DEPTH' 'TIME'}
 %       Atts is a structure which always has fields:
 %         long_name
 %         comment
 %         FillValue (dependant on xType),
 %        [ and missing_value (9 or 9999 dependant on xType) ] - not set
-%         coordinates = 'time depth lat lon'
+%         coordinates = 'time depth latitude longitude'
 %         cell_methods = 'TIME: point DEPTH: point';
 %         DM_indicator = 'R'
 %       Non-QC variables have additional attributes:
@@ -89,11 +91,11 @@ end
 %     missing_value = 999;
 %  end
 v.xType = xType;
-v.dimids = {'TIME' 'DEPTH' 'LAT' 'LON'};
+v.dimids = {'LONGITUDE' 'LATITUDE' 'DEPTH' 'TIME'};
 if isfield(standard_names,vname), v.Atts.standard_name = standard_names.(vname); end
 if isfield(units,vname), v.Atts.units = units.(vname); end
 v.Atts.FillValue = netcdf.getConstant(strrep(xType,'NC_','NC_FILL_'));
-v.Atts.coordinates = 'time depth lat lon';
+v.Atts.coordinates = 'time depth latitude longitude';
 v.Atts.long_name = long_name;
 % v.Atts.QC_indicator = meta.OS_tab2{2}; % reset on read?
 if exist('processing_level','var'), v.Atts.processing_level = processing_level; end% reset on read?

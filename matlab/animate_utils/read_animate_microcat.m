@@ -107,8 +107,8 @@ var.time(:) = (t-datenum('1950-01-01 00:00:00')); % days since 1/1/1950
 
 % Create remaining dimension variables
 var.depth = meta.sbo(have_data==1,1);
-var.lat = meta.anchor_lat;
-var.lon = meta.anchor_lon;
+var.latitude = meta.anchor_lat;
+var.longitude = meta.anchor_lon;
 
 % Find the closest matching times in each stream to the new time array
 t_used = zeros(meta.nrecs,meta.num_depths);
@@ -129,9 +129,11 @@ for j=1:length(flds)
   varnm = fldmap.(fldnm);
   % Setup empty arrays as 'bad' records - NaN for values, QC=1
   if strcmp(varnm(end-1:end),'QC')
-    var.(varnm) = int16(ones(meta.nrecs,meta.num_depths,1,1));
+%     var.(varnm) = int16(ones(meta.nrecs,meta.num_depths,1,1));
+    var.(varnm) = int16(ones(1,1,meta.num_depths,meta.nrecs)); % Use c-style row/col
   else
-    var.(varnm) = NaN(meta.nrecs,meta.num_depths,1,1);
+%     var.(varnm) = NaN(meta.nrecs,meta.num_depths,1,1);
+    var.(varnm) = NaN(1,1,meta.num_depths,meta.nrecs);
   end
   i = 0;
   if isfield(sbodat,fldnm) % We haven't done ox, salinity (or potential temp) yet...
@@ -139,7 +141,8 @@ for j=1:length(flds)
       i = i + 1;
       % At the moment, using nearest! sorts QC values...
       % Use results of intersect to select matching records
-      var.(varnm)(t_used(:,i)>0,i,1,1) = sbodat(m).(fldnm)(t_used(t_used(:,i)>0,i));
+%       var.(varnm)(t_used(:,i)>0,i,1,1) = sbodat(m).(fldnm)(t_used(t_used(:,i)>0,i));
+      var.(varnm)(1,1,i,t_used(:,i)>0) = sbodat(m).(fldnm)(t_used(t_used(:,i)>0,i));
     end
   end
 end

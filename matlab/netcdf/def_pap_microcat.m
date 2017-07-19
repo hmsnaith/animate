@@ -72,9 +72,9 @@ end
 meta.time_coverage_resolution = 'PT30M';
 if strcmp(meta.data_type,'CTDO')
   meta.properties = 'Pressure, Temperature, Conductivity, Salinity and Oxygen';
-  meta.keywords = 'WC_Temp, WC_Sal, http://vocab.nerc.ac.uk/collection/P02/current/TEMP/, http://vocab.nerc.ac.uk/collection/P02/current/PSAL/, http://vocab.nerc.ac.uk/collection/P02/current/DOX2/'; %-> def_pap_microcats
+  meta.keywords = 'WC_Temp, WC_Sal, http://vocab.nerc.ac.uk/collection/P01/current/PRESPS02/, http://vocab.nerc.ac.uk/collection/P02/current/TEMP/, http://vocab.nerc.ac.uk/collection/P02/current/PSAL/, http://vocab.nerc.ac.uk/collection/P02/current/DOX2/'; %-> def_pap_microcats
 else
   meta.properties = 'Pressure, Temperature, Conductivity and Salinity';
-  meta.keywords = 'WC_Temp, WC_Sal, http://vocab.nerc.ac.uk/collection/P02/current/TEMP/, http://vocab.nerc.ac.uk/collection/P02/current/PSAL/'; %-> def_pap_microcats
+  meta.keywords = 'WC_Temp, WC_Sal, http://vocab.nerc.ac.uk/collection/P01/current/PRESPS02/, http://vocab.nerc.ac.uk/collection/P02/current/TEMP/, http://vocab.nerc.ac.uk/collection/P02/current/PSAL/'; %-> def_pap_microcats
 end
 end
