@@ -40,30 +40,32 @@ for m=1:meta.sbo_nv;
     % transfer data into sbodat structure
     sbodat(m).Date_Time = DATA.Date_Time;
     last_date = max(last_date,sbodat(m).Date_Time(end));
-    for fld=varnms
+    for fld=varnms'
       % Copy basic measurements into data structure
       fldnm = ['sbo_' char(fld)];
-      sbodat(m).(char(fld)) = DATA.(fldnm);
-      % If qc flags are set - apply to relevant data
-      tmp = DATA.([fldnm '_qc']);
-      % If all values are null, we ignore them, otherwise
-      if ~isempty(tmp)
-        % Convert QC cell array to matrix
-        qc = int16(tmp);
-        if length(qc)<sbodat(m).n % if the QC array is 'short', not all values set
-          % Assume all values bad
-          qc = int16(ones(1,sbodat(m).n));
-          for i=1:sbodat(m).n
-            % Loop over all QC values, NULL or 0 are considered good
-            if isempty(tmp(i)) || tmp(i)==0, qc(i) = 0; end
+      if isfield(DATA,fldnm)
+        sbodat(m).(char(fld)) = DATA.(fldnm);
+        % If qc flags are set - apply to relevant data
+        tmp = DATA.([fldnm '_qc']);
+        % If all values are null, we ignore them, otherwise
+        if ~isempty(tmp)
+          % Convert QC cell array to matrix
+          qc = int16(tmp);
+          if length(qc)<sbodat(m).n % if the QC array is 'short', not all values set
+            % Assume all values bad
+            qc = int16(ones(1,sbodat(m).n));
+            for i=1:sbodat(m).n
+              % Loop over all QC values, NULL or 0 are considered good
+              if isempty(tmp(i)) || tmp(i)==0, qc(i) = 0; end
+            end
           end
+          % Any flagged bad values - set corresponding value to NaN
+          sbodat(m).(char(fld))(qc>0) = NaN;
+          % Save qc data to sbodat structure
+          sbodat(m).([char(fld) '_qc']) = qc;
+        else
+          sbodat(m).([char(fld) '_qc']) = int16(zeros(1,sbodat(m).n));
         end
-        % Any flagged bad values - set corresponding value to NaN
-        sbodat(m).(char(fld))(qc>0) = NaN;
-        % Save qc data to sbodat structure
-        sbodat(m).([char(fld) '_qc']) = qc;
-      else
-        sbodat(m).([char(fld) '_qc']) = int16(zeros(1,sbodat(m).n));
       end
     end
     
@@ -146,30 +148,30 @@ end
 
 %% Apply QC to measured parameters
 % Pressure 1-1799, and not flagged
-var.PRES_QC(isNaN(var.PRES)) = 9;
+var.PRES_QC(isnan(var.PRES)) = 9;
 var.PRES_QC(var.PRES>1800 | var.PRES<1) = 4; % bad_data
 var.PRES(var.PRES_QC==9) = NaN;
 
 % Temperature >=0.1, <=99, not=22.222
-var.TEMP_QC(isNaN(var.TEMP)) = 9; % maybe add | TEMP_QC>1
+var.TEMP_QC(isnan(var.TEMP)) = 9; % maybe add | TEMP_QC>1
 var.TEMP_QC(var.TEMP==22.222 | var.TEMP>99 | var.TEMP<0.1) = 4;
 % var.TEMP(var.TEMP_QC==9) = NaN; % include if use TEMP_QC>1 
 
 % Conductivity >=0.1, <=99, not=22.222
-var.CNDC_QC(isNaN(var.CNDC)) = 9; % maybe add | CNDC_QC>1
+var.CNDC_QC(isnan(var.CNDC)) = 9; % maybe add | CNDC_QC>1
 var.CNDC_QC(var.CNDC==22.222 | var.CNDC>99 | var.CNDC<0.1) = 4;
 % var.CNDC(var.CNDC_QC==9) = NaN; % include if use CNDC_QC>1
 
 % If temperature bad, conductivity also bad
 var.CNDC_QC(var.TEMP_QC>1) = 4;
 
-if isfield(var.DOX2)
+if isfield(var,'DOX2')
   % Reject all Oxygen values >=10
-  var.DOX2_QC(isNaN(var.DOX2)) = 9;
+  var.DOX2_QC(isnan(var.DOX2)) = 9;
   var.DOX2_QC(var.DOX2 > 9.9) = 4;
 end
 %% Calculate derived parameters
-if isfield(var.DOX2)
+if isfield(var,'DOX2')
   % Calculate Oxygen (/mol)
   var.DOX2 = var.DOX2 * 44.658;
 end
