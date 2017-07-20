@@ -52,16 +52,18 @@ end
 [g, d, v] = oceansites_create_params(meta);
 
 %% Set directories and filenames
-cdout_os = '/noc/itg/pubread/animate/oceansites/microcat/'; % OceanSITES netCDF dir for ftp pickup
-cdout_as = ['/noc/itg/pubread/animate/animate_data/' lower(mooring) '/' deploy '/microcat/']; % animate microcat data - ftp copy
 cdout_mc = ['/noc/users/animate/animate_data/' lower(mooring) '/' deploy '/microcat/']; % animate microcat data - local copy
-in_dir = ['/noc/users/animate/animate_data/' lower(mooring) '/' deploy '/microcat/processed/']; % animate microcat data - local copy
+cdout_os = '/noc/itg/pubread/animate/oceansites_update/'; % OceanSITES netCDF dir for ftp pickup
+% cdout_as = ['/noc/itg/pubread/animate/animate_data/' lower(mooring) '/' deploy '/microcat/']; % animate microcat data - ftp copy
+% in_dir = ['/noc/users/animate/animate_data/' lower(mooring) '/' deploy '/microcat/processed/']; % animate microcat data - local copy
 ffn = [cdout_mc g.id '.nc'];
 
 %% Create netCDF file
 oceansites_make_netcdf(ffn,g,d,v,var)
 
-%% Write data into file
+%% Copy file to ftp location
+disp(['Copying ' ffn ' to ' cdout_os]);
+copyfile(ffn,cdout_os);
 
 end
 

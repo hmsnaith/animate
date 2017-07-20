@@ -95,7 +95,7 @@ v.dimids = {'LONGITUDE' 'LATITUDE' 'DEPTH' 'TIME'};
 if isfield(standard_names,vname), v.Atts.standard_name = standard_names.(vname); end
 if isfield(units,vname), v.Atts.units = units.(vname); end
 v.Atts.FillValue = netcdf.getConstant(strrep(xType,'NC_','NC_FILL_'));
-v.Atts.coordinates = 'time depth latitude longitude';
+v.Atts.coordinates = 'TIME DEPTH LATITUDE LONGITUDE';
 v.Atts.long_name = long_name;
 % v.Atts.QC_indicator = meta.OS_tab2{2}; % reset on read?
 if exist('processing_level','var'), v.Atts.processing_level = processing_level; end% reset on read?
@@ -109,7 +109,7 @@ if exist('hasqc','var') && hasqc
 end
 switch vname(end-1:end)
   case 'QC'
-    if exist('flag_values','var'), v.Atts.flag_values = flag_values; end
+    if exist('flag_values','var'), v.Atts.flag_values = cast(flag_values,x_types.(xType)); end
     if exist('flag_meanings','var'), v.Atts.flag_meanings = flag_meanings; end
   otherwise
     v.Atts.cell_methods = 'TIME: point DEPTH: point';

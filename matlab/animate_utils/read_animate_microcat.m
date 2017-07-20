@@ -104,13 +104,13 @@ end
 toff_mn = mean(toff,'omitnan');
 t = t + toff_mn;
 % Save time series to var time structure - converted to days since 1950
-var.time = NaN(meta.nrecs,1);
-var.time(:) = (t-datenum('1950-01-01 00:00:00')); % days since 1/1/1950
+var.TIME = NaN(meta.nrecs,1);
+var.TIME(:) = (t-datenum('1950-01-01 00:00:00')); % days since 1/1/1950
 
 % Create remaining dimension variables
-var.depth = meta.sbo(have_data==1,1);
-var.latitude = meta.anchor_lat;
-var.longitude = meta.anchor_lon;
+var.DEPTH = meta.sbo(have_data==1,1);
+var.LATITUDE = meta.anchor_lat;
+var.LONGITUDE = meta.anchor_lon;
 
 % Find the closest matching times in each stream to the new time array
 t_used = zeros(meta.nrecs,meta.num_depths);
