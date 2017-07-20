@@ -18,7 +18,7 @@ fldmap = struct(...
          'PSAL','PSAL',...
          'PSAL_QC','PSAL_QC'...
          );
-if meta.sbo_ox==1, fldmap.ox = 'DOX2'; fldmap.ox_qc = 'DOX2_QC'; end
+if meta.sbo_ox==1, fldmap.ox = 'DOXY'; fldmap.ox_qc = 'DOXY_QC'; end
 varnms = fieldnames(fldmap);
 i = 1;
 while i<=length(varnms)
@@ -168,15 +168,15 @@ var.CNDC_QC(var.CNDC==22.222 | var.CNDC>99 | var.CNDC<0.1) = 4;
 % If temperature bad, conductivity also bad
 var.CNDC_QC(var.TEMP_QC>1) = 4;
 
-if isfield(var,'DOX2')
+if isfield(var,'DOXY')
   % Reject all Oxygen values >=10
-  var.DOX2_QC(isnan(var.DOX2)) = 9;
-  var.DOX2_QC(var.DOX2 > 9.9) = 4;
+  var.DOXY_QC(isnan(var.DOXY)) = 9;
+  var.DOXY_QC(var.DOXY > 9.9) = 4;
 end
 %% Calculate derived parameters
-if isfield(var,'DOX2')
+if isfield(var,'DOXY')
   % Calculate Oxygen (/mol)
-  var.DOX2 = var.DOX2 * 44.658;
+  var.DOXY = var.DOXY * 44.658;
 end
 % Salinity (& potential temp) need good TEMP, CNDC & PRES
 qc = find(var.PRES_QC<1 & var.TEMP_QC<1 & var.CNDC_QC<1);
@@ -200,7 +200,7 @@ var.PSAL_QC(var.PSAL< 34.5 | var.PSAL > 35.7) = 5;
 % s_coeff = (meta.sb0_b(1)+(meta.sb0_b(2).*sbo_temp_scaled)+...
 %   (meta.sb0_b(3).*sbo_temp_scaled.^2)+(meta.sb0_b(4).*sbo_temp_scaled.^3));
 % 
-% var.DOX2_comp = var.DOX2.*(exp((sbodat(m).S.*s_coeff)+(meta.sb0_c0*sbodat(m).S.^2)));
+% var.DOXY_comp = var.DOXY.*(exp((sbodat(m).S.*s_coeff)+(meta.sb0_c0*sbodat(m).S.^2)));
 %% change Nans to Fill values - changed to do in oceansites_make_netcdf
 % for j=1:length(flds)
 %   varnm = fldmap.(flds{j});

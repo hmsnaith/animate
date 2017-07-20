@@ -1,25 +1,25 @@
-% disp('Global Attributes')
-% disp('New fields vs Maureen''s');
-% flds = fieldnames(g);
-% for i=1:length(flds)
-%   fld = flds{i};
-%   if isfield(gm,fld)
-%     if ~strcmp(g.(fld).Value,gm.(fld).Value)
-%       disp(['Maureen''s ' fld ': ' gm.(fld).Value]);
-%       disp(['New       ' fld ': ' g.(fld).Value]);
-%     end
-%   else
-%     disp(['No matching field for ' fld ': ' g.(fld).Value]);
-%   end
-% end
-% disp('Maureen''s fields vs New');
-% flds = fieldnames(gm);
-% for i=1:length(flds)
-%   fld = flds{i};
-%   if ~isfield(g,fld)
-%     disp(['No matching field for ' fld ': ' gm.(fld).Value]);
-%   end
-% end
+disp('Global Attributes')
+disp('New fields vs Maureen''s');
+flds = fieldnames(g);
+for i=1:length(flds)
+  fld = flds{i};
+  if isfield(gm,fld)
+    if ~strcmp(g.(fld).Value,gm.(fld).Value)
+      disp(['Maureen''s ' fld ': ' gm.(fld).Value]);
+      disp(['New       ' fld ': ' g.(fld).Value]);
+    end
+  else
+    disp(['No matching field for ' fld ': ' g.(fld).Value]);
+  end
+end
+disp('Maureen''s fields vs New');
+flds = fieldnames(gm);
+for i=1:length(flds)
+  fld = flds{i};
+  if ~isfield(g,fld)
+    disp(['No matching field for ' fld ': ' gm.(fld).Value]);
+  end
+end
 
 disp('Variable Attributes')
 disp('New fields vs Maureen''s');
@@ -27,10 +27,8 @@ flds = fieldnames(v);
 for i=1:length(flds)
   fld = lower(flds{i}); fldm = fld;
   switch fld
-    case 'lat'
-      fldm = 'latitude';
-    case 'lon'
-      fldm = 'longitude';
+    case 'doxy'
+      fldm = 'doxm';
   end
   if isfield(v,upper(fld)), fld = upper(fld); end
   if isfield(vm,upper(fldm)), fldm = upper(fldm); end
@@ -67,10 +65,8 @@ flds = fieldnames(vm);
 for i=1:length(flds)
   fldm = lower(flds{i}); fld = fldm;
   switch fldm
-    case 'latitude'
-      fld = 'lat';
-    case 'longitude'
-      fld = 'lon';
+    case 'doxm'
+      fld = 'doxy';
   end
   if isfield(v,upper(fld)), fld = upper(fld); end
   if isfield(vm,upper(fldm)), fldm = upper(fldm); end
