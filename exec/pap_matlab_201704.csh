@@ -5,7 +5,7 @@
 set deploy = 'pap_2017_apr'
 set dep_dir = '201704'
 
-# Set web sirectory for pap webiste (web_dir) and eurosites (web_dir2)
+# Set web directory for pap website (web_dir) and eurosites (web_dir2)
 set web_dir = '/noc/itg/www/apps/pap/' $deploy
 set web_dir2 = '/data/ncs/www/eurosites/pap/' $deploy
 

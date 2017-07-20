@@ -61,7 +61,8 @@ ffn = [cdout_mc g.id '.nc'];
 %% Create netCDF file
 oceansites_make_netcdf(ffn,g,d,v,var)
 
-%% Write data into file
-
+%% Create text version of files
+% ffn = [cdout_mc g.id];
+% oceansites_make_ascii(ffn,g,v,var);
 end
 

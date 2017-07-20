@@ -12,24 +12,24 @@ cd /noc/users/animate/animate_matlab;
 addpath /noc/users/animate/lib
 
 ncVerNo=3;
-mooring='PAP';
-long_site_name='PAP-SO (Porcupine Abyssal Plain - Sustained Observatory)';
-global mooringlc;
-mooringlc='pap';
-deploy='201507';
-project='FixO3    ';
-history_in='Near real-time processed quality controlled at DAC';
-deploy_voy='RSS Discovery DY032';
-comment_in='no comment';
-pi_name='Richard Lampitt';
-source_institution='NOC';
-update_interval='daily';
-institution_references=[' http://noc.ac.uk'];
-data_area='North Atlantic Ocean';
-mc_Sensor_Sampling_Frequency='Every 30 minutes';
-mc_Sensor_Reporting_Time='No comment';
-mode='R';
-os_format_version='1.3';
+mooring='PAP'; % meta.os_site_code (setup_mooring)
+long_site_name='PAP-SO (Porcupine Abyssal Plain - Sustained Observatory)'; % !not found elsewhere
+global mooringlc; % just use lower(meta.os_site_code) when needed
+mooringlc='pap';  % just use lower(meta.os_site_code) when needed
+deploy='201507'; % Input to oceansites_rt(mooring,deploy).m
+project='FixO3    '; % meta.project (setup_mooring)
+history_in='Near real-time processed and quality controlled at DAC'; meta.history_in (setup_mooring) !set in oceansites_rt
+deploy_voy='RSS Discovery DY032'; % meta.deploy_voy - !used in make_microcat_sbo_netcdf_v1_3
+comment_in='no comment'; % meta.comment_in (setup_mooring) !set in oceansites_rt
+pi_name='Richard Lampitt'; % meta.pi_name (setup_mooring)
+source_institution='NOC'; % meta.source_institution (setup_mooring)
+update_interval='daily';  % meta.update_interval (setup_mooring)
+institution_references=[' http://noc.ac.uk'];  % meta.institution_references (setup_mooring)
+data_area='North Atlantic Ocean';  % meta.data_area (setup_mooring)
+mc_Sensor_Sampling_Frequency='Every 30 minutes';  % meta.mc_Sensor_Sampling_Frequency (setup_mooring)
+mc_Sensor_Reporting_Time='No comment';  % meta.mc_Sensor_Reporting_Time (setup_mooring)
+mode='R';  % meta.mode (setup_mooring)
+os_format_version='1.3';  % meta.os_format_version (setup_mooring)
 %license='';
 %citation='';
 %acknowledgement='';
