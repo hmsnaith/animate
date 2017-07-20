@@ -47,7 +47,7 @@ if exist(ffn,'file')
 else % otherwise, create a new file
   disp(['Creating netcdf file ' OS_name ' in ' OS_dir]);
 end
-scope = netcdf.create(OS_name,ncMode);
+scope = netcdf.create(ffn,ncMode);
 
 %% Write Global Attributes
 attNames = fieldnames(g);
