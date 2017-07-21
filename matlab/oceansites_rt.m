@@ -61,15 +61,13 @@ ffn = [cdout_mc g.id '.nc'];
 %% Create netCDF file
 oceansites_make_netcdf(ffn,g,d,v,var)
 
-<<<<<<< HEAD
 %% Create text version of files
 % ffn = [cdout_mc g.id];
 % oceansites_make_ascii(ffn,g,v,var);
-=======
+
 %% Copy file to ftp location
 disp(['Copying ' ffn ' to ' cdout_os]);
 copyfile(ffn,cdout_os);
 
->>>>>>> e5d0b61135c75327c884fe8c581322f664eb9bfd
 end
 
