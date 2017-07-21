@@ -1,0 +1,7 @@
+MAILTO=bodcnocs@bodc.ac.uk
+
+#Run New scripts every 2 hours for now
+15 */2 * * * /noc/users/animate/exec/pap_iridium_201704.pl >> /noc/users/animate/logs/pap_irid_thalassa.log
+45 */2 * * * /noc/users/animate/exec/pap_matlab_201704.csh >> /noc/users/animate/logs/pap_matlab_thalassa.log
+0 21 * * * /noc/users/animate/exec/pap_201704_rt.csh >> /noc/users/animate/logs/pap_201704_rt_thalassa.log
+
