@@ -4,7 +4,7 @@ function [ref_tab_2, ref_tab_3] = oceansites_ref_tables
 ref_tab_2={
 'unknown'; % 1
 'good_data'; % 2
-'probably_good_date'; % 3
+'probably_good_data'; % 3
 'potentially_correctable_bad_data'; % 4
 'bad_data'; % 5
 '-'; % 6

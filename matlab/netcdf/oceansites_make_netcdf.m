@@ -25,9 +25,9 @@ NC_GLOBAL=netcdf.getConstant('NC_GLOBAL');
 % Generate OceanSITES netCDF file name from file name parts
 OS_name = [fn ft];
 % if the OceanSITES directory exists - cd to that directory
-if exist(OS_dir,'dir')
-  cd(OS_dir);
-else % If it doesn't exist, raise an error
+if ~exist(OS_dir,'dir')
+%   cd(OS_dir);
+% else % If it doesn't exist, raise an error
   error(['OceanSITES directory ' OS_dir ' does not exist']);
 end
 
@@ -41,13 +41,13 @@ end
 ncMode = netcdf.getConstant(ncVer);
 
 % If the file already exists - we overwrite
-if exist(OS_name,'file')
+if exist(ffn,'file')
   disp(['Overwriting netcdf file ' OS_name ' in ' OS_dir]);
   ncMode = bitor(ncMode,netcdf.getConstant('NC_CLOBBER'));
 else % otherwise, create a new file
   disp(['Creating netcdf file ' OS_name ' in ' OS_dir]);
 end
-scope = netcdf.create(OS_name,ncMode);
+scope = netcdf.create(ffn,ncMode);
 
 %% Write Global Attributes
 attNames = fieldnames(g);
@@ -78,7 +78,8 @@ for i=1:length(varNames)
   attNames = fieldnames(varIn.Atts);
   for j=1:length(attNames)
     attName = attNames{j};
-    netcdf.putAtt(scope,varid,attName,varIn.Atts.(attName));
+    if strcmp(attName,'FillValue'), attName = '_FillValue'; end
+    netcdf.putAtt(scope,varid,attName,varIn.Atts.(attNames{j}));
   end
 end
 
