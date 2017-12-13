@@ -59,7 +59,7 @@ pltLeg = {{''},... % air_press
           {'Direction','Spread'},... % Wave Direction
           {'',''},... % Wave Direction quiver
           {'Speed knots','Gust knots','Direction'},... % Wind speed, gust & Dir - 1plot
-          {'Speed knots','Gust knots','Direction'},... % Wind speed, gust & Dir - 3plots
+          {'Speed knots','Gust knots','Direction'},... % Wind speed, gust & Dir - 2plots
           {'','',''}}; % Wind speed & dir quiver
 %           {'Air','Dew Point'}}; % For second sensor
 pltYlab = {'hectopascal',... % air_press
@@ -89,18 +89,12 @@ if (rows > 0)
   metdat.dew_temp(metdat.dew_temp<0 | metdat.dew_temp>50) = NaN;
   metdat.humidity(metdat.humidity<0) = NaN;
   metdat.humidity_2(metdat.humidity_2<=0) = NaN;
-
-  % Check Hsig and wind_gust not null
-  if isempty(metdat.Hsig)
-    metdat.Hsig = NaN(1,rows);
-  elseif length(metdat.Hsig)<rows
-    metdat.Hsig = NaN(1,rows);
-    tmp = {DATA(:).Hsig};
-    for i=1:rows
-      if ~isempty(tmp{i}), metdat.Hsig(i) = tmp{i}; end
-    end
-  end
-  metdat.Hsig(metdat.Hsig>99) = NaN;
+  metdat.wind_speed(metdat.wind_speed>9999) = NaN;
+  metdat.wind_dir(metdat.wind_dir>360) = NaN;
+  metdat.Hmax(metdat.Hmax>999) = NaN;
+  metdat.wave_TP(metdat.wave_TP>=9999) = NaN;
+ 
+  % Check wind_gust not null and in bounds
   if isempty(metdat.wind_gust)
     metdat.wind_gust = NaN(1,rows);
   elseif length(metdat.wind_gust)<rows
@@ -110,6 +104,18 @@ if (rows > 0)
       if ~isempty(tmp{i}), metdat.wind_gust(i) = tmp{i}; end
     end
   end
+  metdat.wind_gust(metdat.wind_gust>9999) = NaN;
+  % Check Hsig not null and in bounds
+  if isempty(metdat.Hsig)
+    metdat.Hsig = NaN(1,rows);
+  elseif length(metdat.Hsig)<rows
+    metdat.Hsig = NaN(1,rows);
+    tmp = {DATA(:).Hsig};
+    for i=1:rows
+      if ~isempty(tmp{i}), metdat.Hsig(i) = tmp{i}; end
+    end
+  end
+  metdat.Hsig(metdat.Hsig>999) = NaN;
   % end of data input
   %% Create monthly averages
   % monthly averages
@@ -172,7 +178,7 @@ for m=1:length(pflds)
 
     if pt == 1 % Standard graphs (multiple variables, 1 set of axes)
       animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y);
-    elseif pt == 2 % 2 parameters on seperate y axes
+    elseif pt == 2 % 2 parameters on 1 graph on seperate y axes, other params on 1 graph
       animate_graphs_yy_1(varTitle,varStr,legend_M,varYlim,x,y);
     elseif pt == 3 % stacked plots
       animate_graphs_n(varTitle,varStr,y_lab,varYlim,x,y);

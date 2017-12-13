@@ -11,7 +11,7 @@ function animate_graphs_yy_1(varTitle,varStr,y_lab,varYlim,x,y)
 %
 % the x axis label and directory to output graphs are set in global
 % variables x_lab and webdir
-global webdir x_lab
+global webdir
 
 %% Setup a new figure - visibility off for batch use
 figure('visible','off');
@@ -82,7 +82,7 @@ for i=1:nps, set(h(i),'fontsize',8); end
 title(h(1), varTitle,'fontsize',10);
 ylabel(AX(1),y_lab{1},'fontsize',10);
 ylabel(AX(2),y_lab{2},'fontsize',10);
-for i=2:nps, ylabel(y_lab{i},'fontsize',10); end
+for i=2:nps, ylabel(y_lab{i+1},'fontsize',10); end
 
 % Save to file
 saveas(gcf,[webdir varStr '.png']);
