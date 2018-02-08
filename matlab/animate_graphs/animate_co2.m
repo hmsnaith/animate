@@ -51,15 +51,28 @@ if (rows > 0)
   % Reject data with out of bounds concentrations, gas pressure, cell
   % temperature of seconds
   qc = find(proKdat.pro_o_K_conc<=0 | proKdat.pro_o_K_gas_press>1100 |...
-            proKdat.pro_o_K_seconds>122 | proKdat.pro_o_K_cell_temp>50);
+            proKdat.pro_o_K_seconds>122 | proKdat.pro_o_K_cell_temp>45);
   for j=2:length(flds)
     fld = flds{j};
     % Set rejected data to NaN
     proKdat.(fld)(qc) = NaN;
   end
-  %% Create monthly averages
-  numdate_vec = datevec(proKdat.Date_Time);
-  mnVar = proKdat.pCO2;
+  
+  %% Calculate Equilibrium values
+  % Find the last measurement in each cycle (time between cycles>0.1days)
+  last = [find(diff(proKdat.Date_Time)>0.1); rows]; %include last point!
+  % Create array of last 3 points in each measurment cycle
+  for j=2:length(flds)
+    fld = flds{j};
+    fld_eq = [fld '_eq'];
+    % Set equilibrium value to max of last 3 values per cycle
+    equil = [proKdat.(fld)(last-2); proKdat.(fld)(last-1); proKdat.(fld)(last)];
+    proKdat.(fld_eq) = max(eq,[],2);
+  end
+    
+  %% Create monthly averages from equlibrium values
+  numdate_vec = datevec(proKdat.Date_Time(last));
+  mnVar = proKdat.pCO2_eq;
   mnVname = 'pCO2_1';
   monthly_average(deploy,start_year,end_year,numdate_vec,mnVar,mnVname);
 end
@@ -75,7 +88,7 @@ for m=1:length(pflds)
     varYlim = [];
     % Set title
     varTitle = {pltTitle{m}, ...
-                ['Latest data: ' datestr(seadat.Date_Time(end))]};
+                ['Latest data: ' datestr(proKdat.Date_Time(end))]};
     % Set fields to plot
     fpl = plt.(varStr);
     % Set plot type, Y Limits
@@ -120,9 +133,9 @@ for m=1:length(pflds)
     empty_plot(varStr)
   end
 end
-%% Plot additional 'daily max' plot for conc
+%% Plot equilibrated value plots for conc
 % Set plot (variable) name
-varStr = 'keel_pro_o_K_conc_dmax';
+varStr = 'keel_pro_o_K_conc_eq';
 if rows>0
   % Set Y axis label
   y_lab = pltUnits{1};
@@ -131,8 +144,8 @@ if rows>0
   % Set marker type
   M = '+';
   % Set title
-  varTitle = {'Pro-Oceanus data - Daily Maximum Carbon Dioxide at 1m', ...
-              ['Latest data: ' datestr(seadat.Date_Time(end))]};
+  varTitle = {'Pro-Oceanus data - Carbon Dioxide at 1m', ...
+              ['Latest data: ' datestr(proKdat.Date_Time(end))]};
   % Set fields to plot
   fpl = {'pro_o_K_conc', 'pCO2'};
   % Set legend
@@ -140,20 +153,12 @@ if rows>0
   for j=1:length(fpl)
     legend_M(j) = {param.(fpl{j})};
   end
-  % Find daily maximum values
-  % days = dateshift(proKdat.Date_Time,'start','day');
-  days = floor(proKdat.Date_Time);
-  udays = unique(days);
-  ndays = length(udays);
   x = cell(1,length(fpl));
   y = x;
   for j=1:length(fpl)
-    fld = fpl{j};
-    x{j} = udays;
-    y{j} = nan(size(udays));
-    for k=1:ndays
-      y{j}(k) = max(proKdat.(fld)(days==udays(k)));
-    end
+    fld = [fpl{j} '_eq'];
+    x{j} = proKdat.Date_Time(last);
+    y{j} = proKdat.(fld);
   end
 
   animate_graphs(varTitle,varStr,y_lab,legend_M,varYlim,x,y,M);
