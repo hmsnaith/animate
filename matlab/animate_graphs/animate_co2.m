@@ -48,17 +48,18 @@ if (rows > 0)
   proKdat.pCO2 = proKdat.pro_o_K_conc.*(proKdat.pro_o_K_gas_press/1013.25);
   % Reject values less than 10
   proKdat.pCO2(proKdat.pCO2 < 10) = NaN;
+
   % Reject data with out of bounds concentrations, gas pressure, cell
-  % temperature of seconds
+  % temperature or seconds (length of reading)
   qc = find(proKdat.pro_o_K_conc<=0 | proKdat.pro_o_K_gas_press>1100 |...
             proKdat.pro_o_K_seconds>122 | proKdat.pro_o_K_cell_temp>45);
+  % Set rejected data to NaN
   for j=2:length(flds)
     fld = flds{j};
-    % Set rejected data to NaN
     proKdat.(fld)(qc) = NaN;
   end
   
-  %% Calculate Equilibrium values
+  %% Calculate equilibrium values
   % Find the last measurement in each cycle (time between cycles>0.1days)
   last = [find(diff(proKdat.Date_Time)>0.1); rows]; %include last point!
   % Create array of last 3 points in each measurment cycle
@@ -66,11 +67,12 @@ if (rows > 0)
     fld = flds{j};
     fld_eq = [fld '_eq'];
     % Set equilibrium value to max of last 3 values per cycle
-    equil = [proKdat.(fld)(last-2); proKdat.(fld)(last-1); proKdat.(fld)(last)];
+    % --- most should be approx constant apart from CO2 conc  ---
+    equil = [proKdat.(fld)(last-2), proKdat.(fld)(last-1), proKdat.(fld)(last)];
     proKdat.(fld_eq) = max(equil,[],2);
   end
     
-  %% Create monthly averages from equlibrium values
+  %% Create monthly averages from equilibrium values
   numdate_vec = datevec(proKdat.Date_Time(last));
   mnVar = proKdat.pCO2_eq;
   mnVname = 'pCO2_1';
@@ -139,8 +141,10 @@ varStr = 'keel_pro_o_K_conc_eq';
 if rows>0
   % Set Y axis label
   y_lab = pltUnits{1};
+  % Assume no y scaling
+  varYlim = [];
   % Set y scaling
-  varYlim = [0 500];
+  %varYlim = [0 500];
   % Set marker type
   M = '+';
   % Set title
