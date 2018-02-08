@@ -67,7 +67,7 @@ if (rows > 0)
     fld_eq = [fld '_eq'];
     % Set equilibrium value to max of last 3 values per cycle
     equil = [proKdat.(fld)(last-2); proKdat.(fld)(last-1); proKdat.(fld)(last)];
-    proKdat.(fld_eq) = max(eq,[],2);
+    proKdat.(fld_eq) = max(equil,[],2);
   end
     
   %% Create monthly averages from equlibrium values
