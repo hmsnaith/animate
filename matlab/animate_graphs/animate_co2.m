@@ -146,7 +146,7 @@ if rows>0
   % Set y scaling
   %varYlim = [0 500];
   % Set marker type
-  M = '+';
+  M = '.';
   % Set title
   varTitle = {'Pro-Oceanus data - Carbon Dioxide at 1m', ...
               ['Latest data: ' datestr(proKdat.Date_Time(end))]};
