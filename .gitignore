@@ -1,14 +1,19 @@
 # Directories to ignore
-
+_expect_scripts/
+exec/_to_assess/
 
 # File types to ignore
 # Compiled code
 *.pyc
 
 # data files
+webdir
 
 # log files
 *.log
+
+# test files
+exec/test_sql_mode.pl
 
 # Graphics files
 *.eps
