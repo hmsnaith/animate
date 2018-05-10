@@ -1,0 +1,39 @@
+As far as I know, these source versions can be compiled against any reasonably recent versions of MySQL and of Matlab, and I don't know of any particular platform dependences although I have tried only Linux and Windows. I have had reports of problems on MacOSX which I hope to sort out soon.
+
+mysql.cpp
+The C++ source code.
+mysql.m
+This M-file contains the help text, displayed if you type help mysql; it is the documentation for how to use the mysql function.
+You will also need the appropriate version of MySQL.
+If your server is on a different machine then you may be able to get only the "Include files and libraries for development" rather than the full server.
+**NOTE**
+To install for remove machine download the MySQL server tar package. Unpack, and mv the files:
+include/mysql.h -> /usr/include/mysql/include/mysql.h
+lib/libmysqlclient.a -> /usr/lib/mysql/libmysqlclient.a
+(Or usr/local/include/mysql and /usr/local/bin/mysql)
+** End Note **
+You will need a C++ compiler and you should configure Matlab for compiling by doing mex -setup.
+** Note **
+Edit the files under /Applications/MATLAB_R2016b.app/bin/maci64/mexopts
+For command-line tool only, this should work (but doesn't)
+Locate the <XCODE_AGREED_VERSION> portion, comment the whole xml tag, e.g. wrap them with <!-- and --> like this:
+<!--XCODE_AGREED_VERSION>
+            <and diagnostic="Xcode is installed, but its license has not been accepted. Run Xcode and accept its license agreement." >
+         ...
+            </and>
+        </XCODE_AGREED_VERSION -->
+And remove all references to SDKVer and ISYSROOT
+For xCode install, make sure the correct version of SDK is included
+** End Note **
+
+Linux/Unix
+I assume you have the MySQL include files and libraries in /usr/include/mysql and /usr/lib/mysql respectively (look for the include file mysql.h and the library libmysqlclient.a). Modify the below compile command as necessary if your installation is different. Then, either from the Matlab command line or from the shell, cd to the directory where you have put mysql.cpp and compile it with
+
+mex -I/usr/include/mysql -L/usr/lib/mysql -lmysqlclient mysql.cpp
+This will produce the file mysql.mexglx which you can copy to somewhere on your Matlab search path, for example ~/matlab.
+
+Test it from inside Matlab with
+
+mysql('status')
+If it says "Not connected" then you are up and running!
+
