@@ -18,7 +18,7 @@ use quality_control_v3;
 # Establish link to animate MySQL tables
 $dbh = DBI->connect("DBI:mysql:animate:mysql","animate_admin","an1mate9876") || die "Can't open $database";
 
-# Set server the accept "out of range" values - so NaNs, and incorrectly received data (stupid numbers) set to max of field rather than send error
+# Set server to accept "out of range" values - so NaNs, and incorrectly received data (stupid numbers) set to max of field rather than send error
 $sql="SET sql_mode = ''";
 $sel = $dbh->prepare($sql);
 $sel->execute() || die "SQL mode setting: $sql failed";
@@ -31,7 +31,7 @@ $sel->execute() || die "SQL mode setting: $sql failed";
 
 $nightly=1;   # attempting to run once a night to mop any missed data. but possibly nolonger required now running from concatenated files.
 
-# Set the serial nunmbers of the various instruments
+# Set the serial numbers of the various instruments
 
 #$oc1_sn="DI70287";  #
 #$oc2_sn="DI70287";  #

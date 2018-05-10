@@ -1,3 +1,4 @@
+
 function [v, meta] = def_pap_microcat(meta)
 %def_microcats Define variables in a pap microcats OceanSITES netCDF file
 %   Generate structure array, v, of variable description for OceanSITES
@@ -9,8 +10,9 @@ have_data = ~isnan(meta.sbo(:,1));
 % dep_str used to set comments and long names
 meta.dep_str = num2str(meta.sbo(have_data,1)','%dm ');
 meta.dep_str = strtrim(meta.dep_str);
-if length(meta.sbo)>1
+% if length(meta.sbo)>1
   sp = strfind(meta.dep_str,' ');
+if ~isempty(sp)
   meta.dep_str = [meta.dep_str(1:sp(end)) '& ' meta.dep_str(sp(end)+1:end)];
 end
 
@@ -59,7 +61,8 @@ v.(vname).Atts.reference_scale = 'PSS-78';
 vname = 'PSAL_QC'; v.(vname) = def_var(vname,'NC_BYTE',meta.dep_str,[0 9],instr_qc);
 
 % If this set of microcats has oxygen - setup Oxygen variable
-if strcmp(meta.data_type,'CTDO')
+% if strcmp(meta.data_type,'CTDO')
+if meta.sbo_ox==1
   vname = 'DOXY'; v.(vname) = def_var(vname,'NC_FLOAT',meta.dep_str,[1. 446.],instr,1);
   v.(vname).Atts.comment = [v.(vname).Atts.comment ' Measured in ml/l converted to micromole/kg'];
   % v.(vname).Atts.uncertainty = ;
@@ -70,7 +73,8 @@ if strcmp(meta.data_type,'CTDO')
 end
 %% Additional attributes that need to be set up
 meta.time_coverage_resolution = 'PT30M';
-if strcmp(meta.data_type,'CTDO')
+% if strcmp(meta.data_type,'CTDO')
+if meta.sbo_ox==1
   meta.properties = 'Pressure, Temperature, Conductivity, Salinity and Oxygen';
   meta.keywords = 'Pres_SL, WC_Temp, WC_Sal, WC_O2, http://vocab.nerc.ac.uk/collection/P01/current/PRESPS02/, http://vocab.nerc.ac.uk/collection/P02/current/TEMP/, http://vocab.nerc.ac.uk/collection/P02/current/PSAL/, http://vocab.nerc.ac.uk/collection/P02/current/DOXY/'; %-> def_pap_microcats
 else

@@ -1,6 +1,8 @@
 function [ var, meta ] = read_animate_microcat(meta)
 %read_animate_microcat Read microcat data from MySQL database into variable
-%   Detailed explanation goes here
+% a single time variable is created, with 30 minutes intervals, covering
+% entire time period of all instruments. Start time is set to be the
+% average of the earliest possible times from each timeseries
 %% Setup variables
 sbodat(1:meta.sbo_nv) = struct('n',0, 'Date_Time',[], ...
                  'temp',[], 'temp_qc',[], 'cond',[], 'cond_qc',[], ...
@@ -8,6 +10,7 @@ sbodat(1:meta.sbo_nv) = struct('n',0, 'Date_Time',[], ...
                  ); % Measured variables from database
 flds = {'Date_Time', 'sbo_temp', 'sbo_temp_qc', 'sbo_cond', 'sbo_cond_qc',...
                    'sbo_press',  'sbo_press_qc', 'sbo_ox', 'sbo_ox_qc'};
+% Map output variables (for OceanSITES) to variables in tables
 fldmap = struct(...
          'temp','TEMP',...
          'temp_qc','TEMP_QC',...
@@ -18,6 +21,7 @@ fldmap = struct(...
          'PSAL','PSAL',...
          'PSAL_QC','PSAL_QC'...
          );
+% If we are including oxygen data - set the mapping
 if meta.sbo_ox==1, fldmap.ox = 'DOXY'; fldmap.ox_qc = 'DOXY_QC'; end
 varnms = fieldnames(fldmap);
 i = 1;
@@ -26,7 +30,7 @@ while i<=length(varnms)
 end
 have_data = zeros(1,meta.sbo_nv);
 last_date = datenum('01-01-1900');
-%% Read in Measurmenets from database
+%% Read in Measurements from database
 start_date = datestr(meta.sdatenum,'yyyy-mm-dd HH:MM:SS');
 end_date = datestr(meta.edatenum,'yyyy-mm-dd HH:MM:SS');
 % For each SBO dataset
@@ -86,8 +90,9 @@ tmin = NaN(1,meta.num_depths); tmax = tmin; toff = tmin;
 i = 0;
 for m=find(have_data==1)
   i = i + 1;
-  tmin(i) = min(tmin(i),min(sbodat(m).Date_Time(sbodat(m).Date_Time>meta.sdatenum)));
-  tmax(i) = max([tmax(i),sbodat(m).Date_Time']);
+%   tmin(i) = min(tmin(i),min(sbodat(m).Date_Time(sbodat(m).Date_Time>meta.sdatenum)));
+  tmin(i) = min([tmin(i); sbodat(m).Date_Time(1)]); % Only extracted times > sdatenum
+  tmax(i) = max([tmax(i); sbodat(m).Date_Time(1)]);
 end
 tstep = 30./24/60; % set a half hour timestep
 t = min(tmin):tstep:max(tmax); % set time series every half hour from first time

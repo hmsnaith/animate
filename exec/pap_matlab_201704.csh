@@ -1,13 +1,18 @@
 #!/bin/csh
-# output from pap_iridium.pl
+# Script to run NRT processsing for PAP 201704 deployment
+# Runs matlab script process_nrt to create graphs in webapps directory
+#  from data held in animate database (run after pap_iridium_201704.pl)
+# Ensures output graphs have 664 permissions set
 
 # Set deployment name
-set deploy = 'pap_2017_apr'
-set dep_dir = '201704'
+set mooring = 'pap'
+set deploy = '201704'
+# Change to use $deploy!
+set dep_dir = ${mooring}_2017_apr'
 
-# Set web directory for pap website (web_dir) and eurosites (web_dir2)
-set web_dir = '/noc/itg/www/apps/pap/' $deploy
-set web_dir2 = '/data/ncs/www/eurosites/pap/' $deploy
+# Set web directory for pap website (webdir) and eurosites (webdir2)
+set webdir = '/noc/itg/www/apps/${mooring}/' $deploy
+set webdir2 = '/data/ncs/www/eurosites/${mooring}/' $deploy
 
 # Date used to label log file
 set date=`date +%y%m%d_%H%M`
@@ -16,8 +21,10 @@ set date=`date +%y%m%d_%H%M`
 alias matlab /nerc/packages/matlab/2015b/bin/matlab
 
 cd /noc/users/animate/animate/matlab
-matlab -nodesktop -nosplash -nodisplay -logfile /noc/users/animate/logs/pap_matlab_201704_$date.log <<FIN
+matlab -nodesktop -nosplash -nodisplay -logfile /noc/users/animate/logs/${mooring}_matlab_${deploy}_$date.log <<FIN
 disp('Opened matlab')
+deploy = '$deploy';
+webdir = '$webdir';
 process_nrt;
 disp('finished matlab')
 quit;
@@ -25,10 +32,8 @@ FIN
 
 echo "Closed matlab"
 
-chmod 664 $web_dir/*.png
+chmod 664 $webdir/*.png
 
 # remove comment on copy when this deployment is live
-#cp $web_dir/*.png  $web_dir2
-#cp $web_dir/*.png  /noc/itg/www/apps/pap/graphs/
-#cp $web_dir2/*.png /data/ncs/www/eurosites/pap/
-#cp /noc/users/animate/animate_data/pap/$dep_dir/monthly/*.csv /noc/itg/pubread/animate/animate_data/pap/$dep_dir/monthly/
+#cp $webdir/*.png  $webdir2
+#cp /noc/users/animate/animate_data/${mooring}/$dep_dir/monthly/*.csv /noc/itg/pubread/animate/animate_data/${mooring}/$dep_dir/monthly/

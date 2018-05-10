@@ -186,6 +186,8 @@ v.LONGITUDE.Atts = struct(...
 switch meta.data_type
   case {'CTD','CTDO'} % microcats
     [v1, meta] = def_pap_microcat(meta);
+  case {'PCO2'} % CO2 sensors
+    [v1, meta] = def_pap_co2(meta);
   otherwise
     disp(['Unknown DataType ' meta.data_type '- no variables defined']);
     v1 = [];

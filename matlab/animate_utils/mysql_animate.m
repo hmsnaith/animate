@@ -4,7 +4,7 @@ function [DATA, rows] = mysql_animate(db_table, cols, start_date, end_date, s_st
 % between start_date and end_date from table db_table
 verb = 0; % 1=verbose, 0=silent
 %% Argument checks
-% If db_table for a charcter - return error
+% If db_table not a character - return error
 % if start_date not set, set to 1900
 % if end_date not set, set to 2100
 if nargin < 4, s_str = ''; end

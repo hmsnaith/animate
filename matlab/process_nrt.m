@@ -1,14 +1,20 @@
 % Script to process NRT data from NOC moorings
+% to create graphs in webapps directory
+%  from data held in animate database (run after pap_iridium_<deploy>.pl)
 
 %% Set Up for current deployment - consider moving to seperate config file
 global webdir x_lab
 
 %% Deployment Info
-%webdir = '/noc/users/animate/img/pap_2017_apr/';
-webdir = '/noc/itg/www/apps/pap/pap_2017_apr/';
-% webdir2 = '/data/ncs/www/eurosites/pap/pap_2017_apr/';
+if isempty(deploy)
+  deploy='201704';
+end
+if isempty(webdir)
+  webdir = '/noc/itg/www/apps/pap/graphs/';
+elseif strcmp(webdir,'test')
+  webdir = '/noc/users/animate/img/pap_graphs/';
+end
 
-deploy='201704';
 db_table=['PAP' deploy];
 % site='PAP';
 dep_name='April 2017'; % Used for graph title

@@ -12,7 +12,7 @@ function [sc, pltfm, wmo, nw, id] = wmo_codes(mooring,mooring_no)
 % If mooring_no is ommitted, or empty, it is ignored
 % Recognised moorings are:
 %     cis, estoc, e2m3a, pap, station-m, tenatso, dyfamed, antares
-%     nog, sog
+%     nog, sog, osnap
 % First 3 characters only required - upper or lower case
 % Data taken from Sites summary file on http://www.oceansites.org/about.html
 
@@ -56,6 +56,10 @@ switch lower(mooring(1:3))
     id = '508529'; wmo=''; sc='NOG'; nw = 'EUROSITES';
   case 'sog'
     id = '508530'; wmo=''; sc='SOG'; nw = 'EUROSITES';
+  case 'rtw'
+    id = ''; wmo=''; sc='OMxx'; nw = 'RTWB'; % OSNAP RTWB1
+  case 'rte'
+    id = ''; wmo=''; sc='OM57'; nw = 'RTEB'; % OSNAP RTEB1
   otherwise
     id = ''; wmo=''; sc=''; nw = '';
 end

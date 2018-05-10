@@ -47,6 +47,7 @@ function [meta, gr] =  setup_mooring_pap(mooring,deploy)
 %         sbo_press_corr: pressure correction for microcats (1 x sbo_nv)
 %         sbo_b: Scaled temperature correction constants (1x4)
 %         sbo_c0: Scaled temperature correction constant
+%         co2: nominal depth & serial number of ProOceanus CO2 sensors
 %         fet_nv: number of FET sensors
 %         fet: nominal depth & serial number of FET sensors (2 x fet_nv)
 %         Aa_ox_calib: Aanderaa Seaguard Oxygen calibration [slope offset]
@@ -56,7 +57,7 @@ function [meta, gr] =  setup_mooring_pap(mooring,deploy)
 %         wet_calib: Wetlabs Chlorophyll calibration [slope offset]
 % gr (out): structure containing Info for graph generation
 %         webdir: Output for graphs for web viewing
-%         dep_name: Deployment name (for grpah titles)
+%         dep_name: Deployment name (for graph titles)
 %         x_lab: Year range for graph X labels
 %         sboYlim: Y limits for SBO (microcats) Ox? values
 %         fetYlim: Y limits for FET values 
@@ -143,6 +144,9 @@ switch deploy
     meta.sbo_b = [-0.00624097 -0.00693498 -0.00690358 -0.00429155];
     meta.sbo_c0 = -0.000000311680;
   
+    % Parameters needed for CO2 processing
+    meta.co2 = {1, '29-097-45';30, '34-200-45'};		% Depth & serial numbers for current deployment
+
     % Parameters needed for FET processing
     meta.fet_nv = 2;
     meta.fet = [1, 257;30, 63];		% Depth & serial numbers for current deployment

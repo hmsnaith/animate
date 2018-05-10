@@ -1,6 +1,7 @@
 # Directories to ignore
 _expect_scripts/
 exec/_to_assess/
+archived
 
 # File types to ignore
 # Compiled code
@@ -8,6 +9,7 @@ exec/_to_assess/
 
 # data files
 webdir
+output
 
 # log files
 *.log

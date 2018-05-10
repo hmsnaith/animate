@@ -19,11 +19,12 @@ addpath('/noc/users/animate/animate/matlab/animate_utils');
 addpath('/noc/users/animate/animate/matlab/netcdf');
 
 %% Setup the metadata for this mooring / deployment
-[meta, ~] = setup_mooring_pap(mooring,deploy);
+mode = 'R'; % OceanSITES code for Near Real Time mode
+[meta] = setup_mooring(mooring,deploy,mode);
 %% Set the OceanSITES table information
 [meta.OS_tab2, meta.OS_tab3] = oceansites_ref_tables;
 %% Setup the generic NRT metadata
-meta.mode = 'R'; % OceanSITES code for Near Real Time mode
+meta.mode = mode;
 meta.ncVerNo = 3; % Still using netCDF v3 at the moment
 meta.os_format_version = '1.3';
 meta.os_conventions = 'CF-1.6';
@@ -42,11 +43,14 @@ meta.keywords_vocabulary = 'SeaDataNet Parameter Discovery Vocabulary';
 meta.qc_manual='MERSEA: In-situ real-time data quality control. Mersea-WP03-IFR-UMAN-001-02A, November 2005';
 
 %% Read in data
-switch ds
-  case {'mc','microcat','CTD','CTDO'}
+switch lower(ds)
+  case {'mc','microcat','ctd','ctdo'}
     meta.data_type = 'CTD';
     [var,meta] = read_animate_microcat(meta);
     if meta.sbo_ox==1, meta.data_type = 'CTDO'; end
+  case {'co2'}
+    meta.data_type = 'PCO2';
+    [var,meta] = read_animate_co2(meta);
 end
 %% Set netCDF parameters - calls def_(datatype)
 [g, d, v] = oceansites_create_params(meta);
