@@ -8,11 +8,11 @@
 set mooring = 'pap'
 set deploy = '201704'
 # Change to use $deploy!
-set dep_dir = ${mooring}_2017_apr'
+set dep_dir = ${mooring}_2017_apr
 
 # Set web directory for pap website (webdir) and eurosites (webdir2)
-set webdir = '/noc/itg/www/apps/${mooring}/' $deploy
-set webdir2 = '/data/ncs/www/eurosites/${mooring}/' $deploy
+set webdir = /noc/itg/www/apps/${mooring}/${dep_dir}/
+set webdir2 = /data/ncs/www/eurosites/${mooring}/${dep_dir}
 
 # Date used to label log file
 set date=`date +%y%m%d_%H%M`
